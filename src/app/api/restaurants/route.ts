@@ -5,6 +5,8 @@ export async function GET() {
   try {
     console.log('Attempting to fetch restaurants at:', new Date().toISOString())
     console.log('DATABASE_URL available:', !!process.env.DATABASE_URL)
+    console.log('Cache buster: v2.0 - ' + Date.now())
+    
     const restaurants = await prisma.restaurant.findMany({
       select: {
         id: true,
