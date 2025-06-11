@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
+    console.log('Attempting to fetch restaurants...')
     const restaurants = await prisma.restaurant.findMany({
       select: {
         id: true,
@@ -30,6 +31,7 @@ export async function GET() {
       ]
     })
 
+    console.log(`Successfully fetched ${restaurants.length} restaurants`)
     return NextResponse.json({
       success: true,
       restaurants
@@ -37,6 +39,11 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error fetching restaurants:', error)
+    console.error('Error details:', {
+      name: (error as any)?.name,
+      message: (error as any)?.message,
+      stack: (error as any)?.stack
+    })
     return NextResponse.json(
       { error: 'Failed to fetch restaurants' },
       { status: 500 }
