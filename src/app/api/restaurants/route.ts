@@ -15,6 +15,7 @@ export async function GET() {
         rating: true,
         balance: true,
         displayOrder: true,
+        averagePrepTime: true,
         _count: {
           select: {
             orders: true,
