@@ -8,24 +8,24 @@ export async function GET() {
     console.log('Cache buster: v2.0 - ' + Date.now())
     
     const restaurants = await prisma.restaurant.findMany({
+      where: {
+        city: { not: null },
+        streetName: { not: null },
+        blockNumber: { not: null }
+      },
       select: {
         id: true,
         name: true,
-        address: true,
         city: true,
+        streetName: true,
+        blockNumber: true,
+        postalCode: true,
+        address: true,
         description: true,
-        imageUrl: true,
-        isOpen: true,
         rating: true,
-        balance: true,
-        displayOrder: true,
+        isOpen: true,
         averagePrepTime: true,
-        _count: {
-          select: {
-            orders: true,
-            ratings: true
-          }
-        }
+        imageUrl: true
       },
       orderBy: [
         { isOpen: 'desc' }, // Open restaurants first
@@ -35,10 +35,7 @@ export async function GET() {
     })
 
     console.log(`Successfully fetched ${restaurants.length} restaurants`)
-    return NextResponse.json({
-      success: true,
-      restaurants
-    })
+    return NextResponse.json(restaurants)
 
   } catch (error) {
     console.error('Error fetching restaurants:', error)

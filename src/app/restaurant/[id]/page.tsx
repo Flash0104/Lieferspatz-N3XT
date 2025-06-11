@@ -3,9 +3,8 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
-import CartSidebar from '../../components/CartSidebar';
 import Header from '../../components/Header';
-import { CartProvider, useCart } from '../../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 interface Restaurant {
   id: number;
@@ -277,10 +276,9 @@ export default function RestaurantMenu({ params }: { params: Promise<{ id: strin
   const resolvedParams = use(params);
   
   return (
-    <CartProvider>
+    <>
       <Header />
       <RestaurantMenuContent restaurantId={resolvedParams.id} />
-      <CartSidebar />
-    </CartProvider>
+    </>
   );
 } 

@@ -10,7 +10,9 @@ export default function RegisterPage() {
     lastName: '',
     email: '',
     password: '',
-    location: '',
+    city: '',
+    streetName: '',
+    blockNumber: '',
     postalCode: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -27,10 +29,10 @@ export default function RegisterPage() {
 
   const handleRegister = async (userType: string) => {
     // Validate required fields
-    const { firstName, lastName, email, password, location, postalCode } = formData;
+    const { firstName, lastName, email, password, city, streetName, blockNumber, postalCode } = formData;
     
-    if (!firstName || !lastName || !email || !password || !location || !postalCode) {
-      setError('All fields are required');
+    if (!firstName || !lastName || !email || !password || !city || !streetName || !blockNumber) {
+      setError('All fields except postal code are required');
       return;
     }
 
@@ -88,7 +90,7 @@ export default function RegisterPage() {
 
       {/* Main Content */}
       <main className="flex items-center justify-center py-12 px-6 min-h-[calc(100vh-80px)]">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full flex flex-col md:flex-row">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-5xl w-full flex flex-col md:flex-row">
           
           {/* Form Section */}
           <div className="w-full md:w-1/2 p-6">
@@ -135,17 +137,21 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Location Fields */}
+              {/* Address Section */}
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">📍 Address Details</h3>
+                
+                {/* City and Postal Code */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">Location</label>
+                    <label className="block text-gray-700 font-semibold mb-2">City *</label>
                   <input
                     type="text"
-                    name="location"
-                    value={formData.location}
+                      name="city"
+                      value={formData.city}
                     onChange={handleInputChange}
                     className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none"
-                    placeholder="Enter location"
+                      placeholder="e.g., Duisburg"
                     required
                   />
                 </div>
@@ -157,9 +163,41 @@ export default function RegisterPage() {
                     value={formData.postalCode}
                     onChange={handleInputChange}
                     className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none"
-                    placeholder="Postal code"
+                      placeholder="e.g., 47057"
+                    />
+                  </div>
+                </div>
+
+                {/* Street Name and Block Number */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-gray-700 font-semibold mb-2">Street Name *</label>
+                    <input
+                      type="text"
+                      name="streetName"
+                      value={formData.streetName}
+                      onChange={handleInputChange}
+                      className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none"
+                      placeholder="e.g., Sonnenwall"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-semibold mb-2">House Number *</label>
+                    <input
+                      type="text"
+                      name="blockNumber"
+                      value={formData.blockNumber}
+                      onChange={handleInputChange}
+                      className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none"
+                      placeholder="e.g., 56"
                     required
                   />
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  * Required fields. We use this information to calculate distances to nearby restaurants and provide accurate delivery estimates.
                 </div>
               </div>
 

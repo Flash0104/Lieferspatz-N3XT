@@ -45,7 +45,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-teal-400 to-teal-600 text-white py-3 px-4 lg:px-8 shadow-md fixed top-0 left-0 right-0 z-50">
+    <header className="bg-gradient-to-r from-slate-800 to-slate-700 text-white py-3 px-4 lg:px-8 shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="flex justify-between items-center">
         {/* Left side - Menu + Logo */}
         <div className="flex items-center min-w-0">
@@ -77,10 +77,12 @@ export default function Header() {
                       {/* User Info Header */}
                       <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
-                            <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
+                          <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border-2 border-teal-200">
+                            <img 
+                              src={session.user.profilePicture || '/images/default-profile.png'} 
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                           <div>
                             <div className="font-semibold text-sm">{session.user.firstName} {session.user.lastName}</div>
@@ -239,9 +241,18 @@ export default function Header() {
           ) : session ? (
             <>
               {/* User Info - Hidden on mobile, shown on larger screens */}
-              <span className="text-sm hidden lg:block">
-                Welcome, {session.user.firstName}!
-              </span>
+              <div className="hidden lg:flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
+                  <img 
+                    src={session.user.profilePicture || '/images/default-profile.png'} 
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-sm">
+                  Welcome, {session.user.firstName}!
+                </span>
+              </div>
               
               {/* Balance (for customers and restaurants) - Hidden on mobile */}
               {(session.user.userType === 'CUSTOMER' || session.user.userType === 'RESTAURANT') && (

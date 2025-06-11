@@ -24,6 +24,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     console.log('🔍 Checkout useEffect - Status:', status, 'Hydrated:', isHydrated, 'Items:', state.items.length, 'Session:', !!session);
+    console.log('🔍 Session user type:', session?.user?.userType);
+    console.log('🔍 Cart state:', state);
     
     // Don't redirect during loading states
     if (status === 'loading') {
@@ -59,6 +61,7 @@ export default function CheckoutPage() {
         const savedCart = localStorage.getItem('lieferspatz-cart');
         if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
+          console.log('🔍 localStorage cart:', parsedCart);
           if (parsedCart?.items?.length > 0) {
             console.log('🔄 Found items in localStorage but not in state, waiting for re-hydration...');
             return; // Don't redirect, cart is actually not empty
@@ -68,13 +71,14 @@ export default function CheckoutPage() {
         console.error('Error checking localStorage:', error);
       }
       
-      console.log('✅ Cart is confirmed empty, redirecting to home');
+      console.log('✅ Cart is confirmed empty, will redirect to home after delay');
       // Add a delay to prevent premature redirects during hydration race conditions
       setTimeout(() => {
         if (state.items.length === 0) {
+          console.log('🔄 Redirecting to home page - cart still empty');
           router.push('/');
         }
-      }, 200);
+      }, 2000); // Increased delay to 2 seconds
       return;
     }
 
@@ -185,9 +189,18 @@ export default function CheckoutPage() {
   if (session && isHydrated && state.items.length === 0 && !orderPlaced) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <div className="text-xl text-gray-600">Checking your cart...</div>
+          <div className="text-xl text-gray-600 mb-4">Your cart appears to be empty!</div>
+          <div className="text-gray-500 mb-6">
+            You need to add items to your cart before checking out.
+          </div>
+          <button 
+            onClick={() => router.push('/')}
+            className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition font-medium"
+          >
+            Browse Restaurants
+          </button>
         </div>
       </div>
     );
@@ -374,9 +387,16 @@ export default function CheckoutPage() {
               <button 
                 onClick={handlePlaceOrder}
                 disabled={loading || state.items.length === 0}
-                className="w-full bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {loading ? 'Placing Order...' : `Place Order - €${(state.total * 1.15).toFixed(2)}`}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Placing Order...
+                  </>
+                ) : (
+                  `Place Order - €${(state.total * 1.15).toFixed(2)}`
+                )}
               </button>
 
               {/* Current Balance */}

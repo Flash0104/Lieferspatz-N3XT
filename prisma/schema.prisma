@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   output        = "../src/generated/prisma"
@@ -15,7 +9,156 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================ 🛠️ USER MODELS ============================ //
+model User {
+  id             Int         @id @default(autoincrement())
+  email          String      @unique
+  password       String
+  userType       UserType    @default(CUSTOMER) @map("user_type")
+  firstName      String      @map("first_name")
+  lastName       String      @map("last_name")
+  location       String
+  postalCode     String?     @map("postal_code")
+  latitude       Float?
+  longitude      Float?
+  balance        Float       @default(0.0)
+  profilePicture String?     @default("/images/default-profile.png") @map("profile_picture")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  blockNumber    String?     @map("block_number")
+  city           String?
+  streetName     String?     @map("street_name")
+  admin          Admin?
+  customer       Customer?
+  orders         Order[]
+  ratings        Rating[]
+  restaurant     Restaurant?
+
+  @@map("users")
+}
+
+model Customer {
+  id      Int     @id @default(autoincrement())
+  userId  Int     @unique @map("user_id")
+  address String?
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders  Order[]
+
+  @@map("customers")
+}
+
+model Restaurant {
+  id              Int         @id @default(autoincrement())
+  userId          Int         @unique @map("user_id")
+  name            String
+  address         String
+  city            String?
+  imageUrl        String?     @map("image_url")
+  description     String?
+  rating          Float       @default(0.0)
+  balance         Float       @default(0.0)
+  isOpen          Boolean     @default(false) @map("is_open")
+  displayOrder    Int         @default(0) @map("display_order")
+  courierType     CourierType @default(CYCLE) @map("courier_type")
+  averagePrepTime Int         @default(20) @map("average_prep_time")
+  latitude        Float?
+  longitude       Float?
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  blockNumber     String?     @map("block_number")
+  postalCode      String?     @map("postal_code")
+  streetName      String?     @map("street_name")
+  menuItems       MenuItem[]
+  orders          Order[]
+  ratings         Rating[]
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("restaurants")
+}
+
+model Admin {
+  id            Int   @id @default(autoincrement())
+  userId        Int   @unique @map("user_id")
+  totalEarnings Float @default(0.0) @map("total_earnings")
+  user          User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+model MenuItem {
+  id           Int         @id @default(autoincrement())
+  name         String
+  description  String?
+  price        Float
+  imageUrl     String?     @default("/images/default-food.png") @map("image_url")
+  category     String
+  restaurantId Int         @map("restaurant_id")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+
+  @@map("menu_items")
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int         @map("user_id")
+  customerId      Int         @map("customer_id")
+  restaurantId    Int         @map("restaurant_id")
+  totalPrice      Float       @default(0.0) @map("total_price")
+  originalFee     Float       @default(0.0) @map("original_fee")
+  serviceFee      Float       @default(0.0) @map("service_fee")
+  status          OrderStatus @default(PENDING)
+  cashbackApplied Boolean     @default(false) @map("cashback_applied")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  items           OrderItem[]
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  payment         Payment?
+  rating          Rating?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int      @map("order_id")
+  menuItemId Int      @map("menu_item_id")
+  quantity   Int      @default(1)
+  price      Float
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Payment {
+  id                Int      @id @default(autoincrement())
+  orderId           Int      @unique @map("order_id")
+  totalPrice        Float    @map("total_price")
+  transactionStatus String   @default("pending") @map("transaction_status")
+  transactionDate   DateTime @default(now()) @map("transaction_date")
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Rating {
+  id           Int        @id @default(autoincrement())
+  userId       Int        @map("user_id")
+  restaurantId Int        @map("restaurant_id")
+  orderId      Int        @unique @map("order_id")
+  rating       Float
+  comment      String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+  order        Order      @relation(fields: [orderId], references: [id])
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@map("ratings")
+}
 
 enum UserType {
   CUSTOMER
@@ -35,173 +178,4 @@ enum OrderStatus {
 enum CourierType {
   CYCLE
   MOTORCYCLE
-}
-
-model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  password      String
-  userType      UserType @default(CUSTOMER) @map("user_type")
-  firstName     String   @map("first_name")
-  lastName      String   @map("last_name")
-  location      String
-  postalCode    String   @map("postal_code")
-  latitude      Float?
-  longitude     Float?
-  balance       Float    @default(0.0)
-  profilePicture String? @default("/images/default-profile.png") @map("profile_picture")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relationships
-  customer   Customer?
-  restaurant Restaurant?
-  admin      Admin?
-  orders     Order[]
-  ratings    Rating[]
-
-  @@map("users")
-}
-
-model Customer {
-  id      Int    @id @default(autoincrement())
-  userId  Int    @unique @map("user_id")
-  address String?
-
-  // Relationships
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders Order[]
-
-  @@map("customers")
-}
-
-model Restaurant {
-  id              Int         @id @default(autoincrement())
-  userId          Int         @unique @map("user_id")
-  name            String
-  address         String
-  city            String
-  imageUrl        String?     @map("image_url")
-  description     String?
-  rating          Float       @default(0.0)
-  balance         Float       @default(0.0)
-  isOpen          Boolean     @default(false) @map("is_open")
-  displayOrder    Int         @default(0) @map("display_order")
-  courierType     CourierType @default(CYCLE) @map("courier_type")
-  averagePrepTime Int         @default(20) @map("average_prep_time")
-  latitude        Float?
-  longitude       Float?
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-
-  // Relationships
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  menuItems MenuItem[]
-  orders    Order[]
-  ratings   Rating[]
-
-  @@map("restaurants")
-}
-
-model Admin {
-  id            Int   @id @default(autoincrement())
-  userId        Int   @unique @map("user_id")
-  totalEarnings Float @default(0.0) @map("total_earnings")
-
-  // Relationships
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("admins")
-}
-
-// ============================ 📖 MENU MODELS ============================ //
-
-model MenuItem {
-  id           Int     @id @default(autoincrement())
-  name         String
-  description  String?
-  price        Float
-  imageUrl     String? @default("/images/default-food.png") @map("image_url")
-  category     String
-  restaurantId Int     @map("restaurant_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relationships
-  restaurant Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  orderItems OrderItem[]
-
-  @@map("menu_items")
-}
-
-// ============================ 🛒 ORDER MODELS ============================ //
-
-model Order {
-  id             Int         @id @default(autoincrement())
-  userId         Int         @map("user_id")
-  customerId     Int         @map("customer_id")
-  restaurantId   Int         @map("restaurant_id")
-  totalPrice     Float       @default(0.0) @map("total_price")
-  originalFee    Float       @default(0.0) @map("original_fee")
-  serviceFee     Float       @default(0.0) @map("service_fee")
-  status         OrderStatus @default(PENDING)
-  cashbackApplied Boolean    @default(false) @map("cashback_applied")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
-
-  // Relationships
-  user       User        @relation(fields: [userId], references: [id])
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  restaurant Restaurant  @relation(fields: [restaurantId], references: [id])
-  items      OrderItem[]
-  payment    Payment?
-  rating     Rating?
-
-  @@map("orders")
-}
-
-model OrderItem {
-  id         Int @id @default(autoincrement())
-  orderId    Int @map("order_id")
-  menuItemId Int @map("menu_item_id")
-  quantity   Int @default(1)
-  price      Float // Store price at time of order
-
-  // Relationships
-  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
-
-  @@map("order_items")
-}
-
-model Payment {
-  id                Int      @id @default(autoincrement())
-  orderId           Int      @unique @map("order_id")
-  totalPrice        Float    @map("total_price")
-  transactionStatus String   @default("pending") @map("transaction_status")
-  transactionDate   DateTime @default(now()) @map("transaction_date")
-
-  // Relationships
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@map("payments")
-}
-
-// ============================ ⭐ RATING MODEL ============================ //
-
-model Rating {
-  id           Int      @id @default(autoincrement())
-  userId       Int      @map("user_id")
-  restaurantId Int      @map("restaurant_id")
-  orderId      Int      @unique @map("order_id")
-  rating       Float
-  comment      String?
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  // Relationships
-  user       User       @relation(fields: [userId], references: [id])
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
-  order      Order      @relation(fields: [orderId], references: [id])
-
-  @@map("ratings")
 }
