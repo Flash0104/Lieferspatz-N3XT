@@ -19,7 +19,7 @@ declare module 'next-auth' {
       lastName: string
       userType: UserType
       location: string
-      postalCode: string
+      postalCode: string | null
       balance: number
       address?: string
       profilePicture?: string
@@ -33,7 +33,7 @@ declare module 'next-auth' {
     lastName: string
     userType: UserType
     location: string
-    postalCode: string
+    postalCode: string | null
     balance: number
     address?: string
     profilePicture?: string
@@ -47,7 +47,7 @@ declare module 'next-auth/jwt' {
     firstName: string
     lastName: string
     location: string
-    postalCode: string
+    postalCode: string | null
     balance: number
     address?: string
     profilePicture?: string
