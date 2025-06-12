@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Header from '../components/Header';
 
 interface Restaurant {
@@ -39,7 +39,7 @@ interface SearchResponse {
   };
 }
 
-export default function SearchPage() {
+function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
@@ -97,7 +97,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <>
       <Header />
       
       <main className="container mx-auto px-4 pt-24 pb-8">
@@ -198,91 +198,99 @@ export default function SearchPage() {
                     </div>
 
                     <div className="p-6">
-                      <h3 className="text-xl font-semibold text-white mb-2">{restaurant.name}</h3>
-                      <p className="text-slate-300 text-sm mb-4">
-                        {restaurant.description || 'Delicious food awaits you!'}
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-xl font-bold text-white">{restaurant.name}</h3>
+                        <div className="flex items-center">
+                          <span className="text-yellow-400 text-sm">★</span>
+                          <span className="text-white ml-1 text-sm">{restaurant.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
+
+                      <p className="text-slate-300 text-sm mb-2">
+                        {restaurant.streetName} {restaurant.blockNumber}, {restaurant.city}
                       </p>
-                      
+
+                      <p className="text-slate-400 text-sm mb-4 line-clamp-2">
+                        {restaurant.description}
+                      </p>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-300">
+                          ⏱️ {restaurant.averagePrepTime} min
+                        </span>
+                        <span className="text-slate-300">
+                          💰 ~€{restaurant.averagePrice.toFixed(0)} avg
+                        </span>
+                      </div>
+
                       {/* Matched Items */}
                       {restaurant.matchedItems.length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-orange-400 text-sm font-medium mb-2">
-                            Matching items:
-                          </p>
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                          <p className="text-xs text-slate-400 mb-2">Matched items:</p>
                           <div className="flex flex-wrap gap-1">
                             {restaurant.matchedItems.slice(0, 3).map((item, index) => (
                               <span 
                                 key={index}
-                                className="inline-block bg-orange-500/20 text-orange-300 text-xs px-2 py-1 rounded"
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800"
                               >
-                                {item.name} (€{item.price.toFixed(2)})
+                                {item.name}
                               </span>
                             ))}
                             {restaurant.matchedItems.length > 3 && (
-                              <span className="inline-block bg-slate-600 text-slate-300 text-xs px-2 py-1 rounded">
+                              <span className="text-xs text-slate-400">
                                 +{restaurant.matchedItems.length - 3} more
                               </span>
                             )}
                           </div>
                         </div>
                       )}
-
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                          <span className="text-yellow-400">⭐</span>
-                          <span className="text-white ml-1">{restaurant.rating.toFixed(1)}</span>
-                        </div>
-                        <div className="text-slate-300 text-sm">
-                          {restaurant.city}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm text-slate-400 mb-4">
-                        <span>🕐 {restaurant.averagePrepTime} min</span>
-                        {restaurant.averagePrice > 0 && (
-                          <span>💰 €{restaurant.averagePrice.toFixed(2)} avg</span>
-                        )}
-                      </div>
-                      
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRestaurantClick(restaurant.id);
-                        }}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
-                      >
-                        View Menu
-                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">😔</div>
+                <div className="text-6xl mb-4">🔍</div>
                 <h2 className="text-2xl font-bold text-white mb-2">No Results Found</h2>
                 <p className="text-slate-300 mb-4">
                   We couldn't find any restaurants matching "{query}"
                 </p>
-                <p className="text-slate-400 text-sm">
-                  Try searching for:
-                </p>
-                <div className="flex flex-wrap justify-center gap-2 mt-2">
-                  {['burger', 'pizza', 'döner', 'chicken', 'soup', 'Duisburg', 'Essen'].map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() => router.push(`/search?q=${suggestion}`)}
-                      className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded text-sm transition"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
+                <div className="text-slate-400 text-sm">
+                  <p>Try searching for:</p>
+                  <ul className="mt-2 space-y-1">
+                    <li>• Restaurant names (e.g., "McDonald's", "Burger King")</li>
+                    <li>• Cities (e.g., "Berlin", "Munich", "Hamburg")</li>
+                    <li>• Food types (e.g., "pizza", "burger", "sushi", "döner")</li>
+                  </ul>
                 </div>
               </div>
             )}
           </>
         )}
       </main>
+    </>
+  );
+}
+
+function SearchFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Header />
+      <main className="container mx-auto px-4 pt-24 pb-8">
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400"></div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Suspense fallback={<SearchFallback />}>
+        <SearchContent />
+      </Suspense>
     </div>
   );
 } 
