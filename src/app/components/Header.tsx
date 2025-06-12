@@ -2,6 +2,7 @@
 
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useBalance } from '../context/BalanceContext';
 import { useCart } from '../context/CartContext';
@@ -10,6 +11,7 @@ export default function Header() {
   const { state, toggleCart } = useCart();
   const { data: session, status } = useSession();
   const { balance } = useBalance();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -40,8 +42,9 @@ export default function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement search functionality
-    console.log('Searching for:', searchQuery);
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   return (
@@ -206,9 +209,10 @@ export default function Header() {
             )}
           </div>
 
-          <Link href="/" className="text-xl lg:text-2xl font-bold hover:text-gray-200 transition flex items-center">
-            🍕 Lieferspatz
-          </Link>
+                      <Link href="/" className="text-xl lg:text-2xl font-bold hover:text-gray-200 transition flex items-center">
+              <img src="/favicon.ico" alt="Lieferspatz Logo" className="w-8 h-8 mr-2 bg-white rounded-full p-1" />
+              Lieferspatz
+            </Link>
         </div>
 
         {/* Center - Search Bar */}
@@ -217,7 +221,7 @@ export default function Header() {
             <div className="flex rounded-lg bg-white overflow-hidden shadow-sm">
               <input
                 type="text"
-                placeholder="Enter your address or restaurant..."
+                placeholder="Search restaurants, cities, or food (burger, pizza, döner)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 px-4 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -333,7 +337,7 @@ export default function Header() {
           <div className="flex rounded-lg bg-white overflow-hidden shadow-sm">
             <input
               type="text"
-              placeholder="Enter your address or restaurant..."
+              placeholder="Search restaurants, cities, or food (burger, pizza, döner)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-4 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300"

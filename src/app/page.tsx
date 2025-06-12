@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Header from './components/Header';
+import RestaurantSorting from './components/RestaurantSorting';
 
 interface Restaurant {
   id: number;
@@ -21,6 +22,20 @@ interface Restaurant {
   distance?: number;
   distanceText?: string;
   distanceLoading?: boolean;
+  averagePrice?: number;
+  displayOrder?: number;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface RestaurantResponse {
+  restaurants: Restaurant[];
+  userCity: string | null;
+  filters: {
+    sortBy: string;
+    sortOrder: string;
+    cityFilter: string;
+  };
 }
 
 export default function Home() {
@@ -28,56 +43,83 @@ export default function Home() {
   const router = useRouter();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userCity, setUserCity] = useState<string | null>(null);
+  const [currentSort, setCurrentSort] = useState('admin');
+  const [currentOrder, setCurrentOrder] = useState('asc');
+  const [currentCityFilter, setCityFilter] = useState('same');
 
   useEffect(() => {
-    // Load restaurants on component mount (default location)
-    loadRestaurants();
+    // Load restaurants on component mount with default sorting
+    loadRestaurants('admin', 'asc', 'same');
   }, []);
 
-  const loadRestaurants = async () => {
+  const loadRestaurants = async (sortBy = 'admin', sortOrder = 'asc', cityFilter = 'same') => {
     try {
       setLoading(true);
       
-      // First load restaurants without distances to show them immediately
-      const quickResponse = await fetch('/api/restaurants');
-      if (quickResponse.ok) {
-        const quickData = await quickResponse.json();
-        const restaurantsWithLoading = quickData.map((restaurant: Restaurant) => ({
-          ...restaurant,
-          distanceLoading: true,
-          distanceText: undefined
-        }));
-        setRestaurants(restaurantsWithLoading);
-        setLoading(false);
-      }
-
-      // Then load with distances
-      const response = await fetch('/api/restaurants-with-distance');
+      // Build query parameters
+      const params = new URLSearchParams({
+        sortBy,
+        sortOrder,
+        cityFilter
+      });
+      
+      // Load restaurants with new sorting system
+      const response = await fetch(`/api/restaurants?${params}`);
       if (response.ok) {
-      const data = await response.json();
-        const restaurantsWithDistance = data.map((restaurant: Restaurant) => ({
-          ...restaurant,
-          distanceLoading: false
-        }));
-        setRestaurants(restaurantsWithDistance || []);
-      } else {
-        // If distance API fails, just remove loading state
-        setRestaurants(prev => prev.map(restaurant => ({
-          ...restaurant,
-          distanceLoading: false,
-          distanceText: 'Distance unavailable'
-        })));
+        const data: RestaurantResponse = await response.json();
+        setRestaurants(data.restaurants);
+        setUserCity(data.userCity);
+        setCurrentSort(data.filters.sortBy);
+        setCurrentOrder(data.filters.sortOrder);
+        setCityFilter(data.filters.cityFilter);
+        
+        // If sorting by distance, load distance calculations
+        if (sortBy === 'distance') {
+          loadDistances(data.restaurants);
+        }
       }
     } catch (error) {
       console.error('Error loading restaurants:', error);
-      setRestaurants(prev => prev.map(restaurant => ({
-        ...restaurant,
-        distanceLoading: false,
-        distanceText: 'Distance unavailable'
-      })));
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadDistances = async (restaurantList: Restaurant[]) => {
+    try {
+      const response = await fetch('/api/restaurants-with-distance');
+      if (response.ok) {
+        const distanceData = await response.json();
+        
+        // Merge distance data with current restaurants
+        const updatedRestaurants = restaurantList.map(restaurant => {
+          const distanceInfo = distanceData.find((d: any) => d.id === restaurant.id);
+          return {
+            ...restaurant,
+            distance: distanceInfo?.distance,
+            distanceText: distanceInfo?.distanceText
+          };
+        });
+        
+        // Sort by distance if that's the current sort
+        if (currentSort === 'distance') {
+          updatedRestaurants.sort((a, b) => {
+            const aDistance = a.distance || 999;
+            const bDistance = b.distance || 999;
+            return currentOrder === 'asc' ? aDistance - bDistance : bDistance - aDistance;
+          });
+        }
+        
+        setRestaurants(updatedRestaurants);
+      }
+    } catch (error) {
+      console.error('Error loading distances:', error);
+    }
+  };
+
+  const handleSortChange = (sortBy: string, sortOrder: string, cityFilter: string) => {
+    loadRestaurants(sortBy, sortOrder, cityFilter);
   };
 
   const handleRestaurantClick = (restaurantId: number) => {
@@ -128,8 +170,24 @@ export default function Home() {
             Restaurants Near You
             </h2>
           <p className="text-slate-300 text-center mb-8">
-            Sorted by distance - closest restaurants first
-            </p>
+            {currentCityFilter === 'same' && userCity 
+              ? `Showing restaurants in ${userCity}` 
+              : 'Showing restaurants from all cities'
+            }
+            {currentSort === 'admin' && ' - Admin recommended order'}
+            {currentSort === 'rating' && ' - Sorted by rating'}
+            {currentSort === 'distance' && ' - Sorted by distance'}
+            {currentSort === 'price' && ' - Sorted by price'}
+          </p>
+
+          {/* Sorting Controls */}
+          <RestaurantSorting
+            currentSort={currentSort}
+            currentOrder={currentOrder}
+            currentCityFilter={currentCityFilter}
+            userCity={userCity}
+            onSortChange={handleSortChange}
+          />
 
           {loading ? (
             <div className="flex justify-center items-center py-12">
@@ -190,14 +248,19 @@ export default function Home() {
               
                     <div className="flex items-center justify-between text-sm text-slate-400 mb-4">
                       <span>🕐 {restaurant.averagePrepTime} min</span>
-                      {restaurant.distanceLoading ? (
-                        <div className="flex items-center">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b border-slate-400 mr-1"></div>
-                          <span>Calculating...</span>
-                </div>
-                      ) : restaurant.distance && (
-                        <span>📍 {restaurant.distance.toFixed(1)} km</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {currentSort === 'price' && restaurant.averagePrice && (
+                          <span>💰 €{restaurant.averagePrice.toFixed(2)} avg</span>
+                        )}
+                        {restaurant.distanceLoading ? (
+                          <div className="flex items-center">
+                            <div className="animate-spin rounded-full h-3 w-3 border-b border-slate-400 mr-1"></div>
+                            <span>Calculating...</span>
+                          </div>
+                        ) : restaurant.distance && (
+                          <span>📍 {restaurant.distance.toFixed(1)} km</span>
+                        )}
+                      </div>
               </div>
               
                     <button 

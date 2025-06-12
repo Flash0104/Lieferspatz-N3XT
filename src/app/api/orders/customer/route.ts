@@ -46,6 +46,14 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        rating: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true
+          }
         }
       },
       orderBy: {

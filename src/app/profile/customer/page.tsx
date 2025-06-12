@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Header from '../../components/Header'
 import ImageUpload from '../../components/ImageUpload'
+import RatingModal from '../../components/RatingModal'
 
 interface Order {
   id: number
@@ -21,6 +22,12 @@ interface Order {
       price: number
     }
   }[]
+  rating?: {
+    id: number
+    rating: number
+    comment: string | null
+    createdAt: string
+  }
 }
 
 export default function CustomerProfile() {
@@ -41,6 +48,15 @@ export default function CustomerProfile() {
     location: '',
     postalCode: '',
     address: ''
+  })
+  const [ratingModal, setRatingModal] = useState<{
+    isOpen: boolean
+    orderId: number
+    restaurantName: string
+  }>({
+    isOpen: false,
+    orderId: 0,
+    restaurantName: ''
   })
 
   useEffect(() => {
@@ -96,6 +112,43 @@ export default function CustomerProfile() {
   const handleProfileImageUpload = (url: string) => {
     // The image upload already updates the database, but we could refresh the session here
     console.log('Profile image uploaded:', url)
+  }
+
+  const handleRateOrder = (orderId: number, restaurantName: string) => {
+    setRatingModal({
+      isOpen: true,
+      orderId,
+      restaurantName
+    })
+  }
+
+  const handleSubmitRating = async (rating: number, comment: string) => {
+    try {
+      const response = await fetch('/api/orders/rate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          orderId: ratingModal.orderId,
+          rating,
+          comment
+        })
+      })
+
+      if (response.ok) {
+        // Refresh orders to show the new rating
+        await fetchOrders()
+        setRatingModal({ isOpen: false, orderId: 0, restaurantName: '' })
+      } else {
+        const error = await response.json()
+        console.error('Failed to submit rating:', error)
+        alert('Failed to submit rating. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error)
+      alert('Failed to submit rating. Please try again.')
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -380,7 +433,7 @@ export default function CustomerProfile() {
                         
                         <div className="border-t border-gray-100 pt-3">
                           <h4 className="font-medium text-sm text-gray-700 mb-2">Items:</h4>
-                          <div className="space-y-1">
+                          <div className="space-y-1 mb-3">
                             {order.items.map((item, index) => (
                               <div key={index} className="flex justify-between text-sm">
                                 <span className="text-gray-600">{item.quantity}x {item.menuItem.name}</span>
@@ -388,6 +441,63 @@ export default function CustomerProfile() {
                               </div>
                             ))}
                           </div>
+                          
+                          {/* Rating Section */}
+                          {order.status === 'DELIVERED' && (
+                            <div className="border-t border-gray-100 pt-3">
+                              {order.rating ? (
+                                <div className="bg-yellow-50 rounded-lg p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-gray-700">Your Rating:</span>
+                                    <div className="flex items-center">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <svg
+                                          key={star}
+                                          className={`w-4 h-4 ${
+                                            star <= order.rating!.rating
+                                              ? 'text-yellow-400 fill-current'
+                                              : 'text-gray-300'
+                                          }`}
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                            fill={star <= order.rating!.rating ? 'currentColor' : 'none'}
+                                          />
+                                        </svg>
+                                      ))}
+                                      <span className="ml-1 text-sm font-medium text-gray-600">
+                                        {order.rating.rating.toFixed(1)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {order.rating.comment && (
+                                    <p className="text-sm text-gray-600 italic">
+                                      "{order.rating.comment}"
+                                    </p>
+                                  )}
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    Rated on {new Date(order.rating.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleRateOrder(order.id, order.restaurant.name)}
+                                  className="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-3 rounded-lg transition-colors text-sm font-medium flex items-center justify-center"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                  </svg>
+                                  Rate this order
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -398,6 +508,15 @@ export default function CustomerProfile() {
           </div>
         </div>
       </div>
+
+      {/* Rating Modal */}
+      <RatingModal
+        isOpen={ratingModal.isOpen}
+        onClose={() => setRatingModal({ isOpen: false, orderId: 0, restaurantName: '' })}
+        onSubmit={handleSubmitRating}
+        restaurantName={ratingModal.restaurantName}
+        orderId={ratingModal.orderId}
+      />
     </div>
   )
 } 

@@ -74,9 +74,10 @@ export default function RegisterPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-teal-400 to-teal-600 text-white py-4 px-8 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold hover:text-gray-200 transition">
-            🍕 Lieferspatz
-          </Link>
+                      <Link href="/" className="text-2xl font-bold hover:text-gray-200 transition flex items-center">
+              <img src="/favicon.ico" alt="Lieferspatz Logo" className="w-8 h-8 mr-2 bg-white rounded-full p-1" />
+              Lieferspatz
+            </Link>
           <div className="flex items-center space-x-4">
             <Link href="/auth/login" className="bg-white text-teal-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
               Login

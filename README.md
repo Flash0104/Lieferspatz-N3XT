@@ -1,4 +1,4 @@
-# 🍕 Lieferspatz - Modern Food Delivery Platform
+# 🚚 Lieferspatz - Modern Food Delivery Platform
 
 A modern, responsive food delivery application built with Next.js 15, TypeScript, Tailwind CSS, and PostgreSQL. Features a complete multi-user authentication system with three distinct user types and a fully functional cart sidebar.
 
