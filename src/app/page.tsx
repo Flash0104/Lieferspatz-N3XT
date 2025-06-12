@@ -3,7 +3,6 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Header from './components/Header';
 import RestaurantSorting from './components/RestaurantSorting';
 
 interface Restaurant {
@@ -132,163 +131,177 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8 pt-24">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4">
-            Welcome to <span className="text-orange-400">Lieferspatz</span>
-            </h1>
-          <p className="text-xl text-slate-300 mb-8">
-            Discover amazing restaurants and get your favorite food delivered
-          </p>
+    <div className="container mx-auto px-4 pt-24 pb-8">
+      <div className="text-center mb-10">
+        <h1 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+          Welcome to <span style={{ color: 'var(--accent, #f97316)' }}>Lieferspatz</span>
+        </h1>
+        <p className="text-lg mb-6" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>
+          Discover amazing restaurants and get your favorite food delivered
+        </p>
+      </div>
+
+      {/* Features Section */}
+      <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="rounded-lg p-6 text-center border" style={{
+          backgroundColor: 'var(--card, #1e293b)',
+          borderColor: 'rgba(148, 163, 184, 0.2)',
+          color: 'var(--foreground, #f1f5f9)'
+        }}>
+          <div className="text-3xl mb-4">🚀</div>
+          <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
+          <p style={{ opacity: 0.8 }}>Get your food delivered in under 30 minutes</p>
         </div>
-
-        {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 text-center border border-slate-700">
-            <div className="text-3xl mb-4">🚀</div>
-            <h3 className="text-xl font-semibold text-white mb-2">Fast Delivery</h3>
-            <p className="text-slate-300">Get your food delivered in under 30 minutes</p>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 text-center border border-slate-700">
-            <div className="text-3xl mb-4">📍</div>
-            <h3 className="text-xl font-semibold text-white mb-2">Distance-Based Search</h3>
-            <p className="text-slate-300">Find restaurants sorted by proximity to you</p>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 text-center border border-slate-700">
-            <div className="text-3xl mb-4">⭐</div>
-            <h3 className="text-xl font-semibold text-white mb-2">Quality Food</h3>
-            <p className="text-slate-300">Only the best restaurants in your area</p>
-          </div>
+        <div className="rounded-lg p-6 text-center border" style={{
+          backgroundColor: 'var(--card, #1e293b)',
+          borderColor: 'rgba(148, 163, 184, 0.2)',
+          color: 'var(--foreground, #f1f5f9)'
+        }}>
+          <div className="text-3xl mb-4">📍</div>
+          <h3 className="text-xl font-semibold mb-2">Distance-Based Search</h3>
+          <p style={{ opacity: 0.8 }}>Find restaurants sorted by proximity to you</p>
         </div>
+        <div className="rounded-lg p-6 text-center border" style={{
+          backgroundColor: 'var(--card, #1e293b)',
+          borderColor: 'rgba(148, 163, 184, 0.2)',
+          color: 'var(--foreground, #f1f5f9)'
+        }}>
+          <div className="text-3xl mb-4">⭐</div>
+          <h3 className="text-xl font-semibold mb-2">Quality Food</h3>
+          <p style={{ opacity: 0.8 }}>Only the best restaurants in your area</p>
+        </div>
+      </div>
 
-        {/* Restaurants Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">
-            Restaurants Near You
-            </h2>
-          <p className="text-slate-300 text-center mb-8">
-            {currentCityFilter === 'same' && userCity 
-              ? `Showing restaurants in ${userCity}` 
-              : 'Showing restaurants from all cities'
-            }
-            {currentSort === 'admin' && ' - Admin recommended order'}
-            {currentSort === 'rating' && ' - Sorted by rating'}
-            {currentSort === 'distance' && ' - Sorted by distance'}
-            {currentSort === 'price' && ' - Sorted by price'}
-          </p>
+      {/* Restaurants Section */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+          Restaurants Near You
+        </h2>
+        <p className="text-center mb-8" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>
+          {currentCityFilter === 'same' && userCity 
+            ? `Showing restaurants in ${userCity}` 
+            : 'Showing restaurants from all cities'
+          }
+          {currentSort === 'admin' && ' - Admin recommended order'}
+          {currentSort === 'rating' && ' - Sorted by rating'}
+          {currentSort === 'distance' && ' - Sorted by distance'}
+          {currentSort === 'price' && ' - Sorted by price'}
+        </p>
 
-          {/* Sorting Controls */}
-          <RestaurantSorting
-            currentSort={currentSort}
-            currentOrder={currentOrder}
-            currentCityFilter={currentCityFilter}
-            userCity={userCity}
-            onSortChange={handleSortChange}
-          />
+        {/* Sorting Controls */}
+        <RestaurantSorting
+          currentSort={currentSort}
+          currentOrder={currentOrder}
+          currentCityFilter={currentCityFilter}
+          userCity={userCity}
+          onSortChange={handleSortChange}
+        />
 
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400"></div>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {restaurants.map((restaurant) => (
-                <div 
-                  key={restaurant.id} 
-                  onClick={() => handleRestaurantClick(restaurant.id)}
-                  className="bg-slate-800/50 backdrop-blur-sm rounded-lg overflow-hidden shadow-lg border border-slate-700 hover:border-orange-400 transition-all duration-300 cursor-pointer hover:transform hover:scale-105"
-                >
-                  <div className="relative h-48">
-                    <img
-                      src={restaurant.imageUrl || '/images/default-restaurant.png'}
-                      alt={restaurant.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-4 right-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        restaurant.isOpen 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {restaurant.isOpen ? '● Open' : '● Closed'}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: 'var(--accent, #f97316)' }}></div>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {restaurants.map((restaurant) => (
+              <div 
+                key={restaurant.id} 
+                onClick={() => handleRestaurantClick(restaurant.id)}
+                className="rounded-lg overflow-hidden shadow-lg border transition-all duration-300 cursor-pointer hover:transform hover:scale-105 restaurant-card"
+                style={{
+                  backgroundColor: 'var(--card, #1e293b)',
+                  borderColor: 'rgba(148, 163, 184, 0.2)'
+                }}
+              >
+                <div className="relative h-48">
+                  <img
+                    src={restaurant.imageUrl || '/images/default-restaurant.png'}
+                    alt={restaurant.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 right-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      restaurant.isOpen 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {restaurant.isOpen ? '● Open' : '● Closed'}
+                    </span>
+                  </div>
+                  {restaurant.distanceLoading ? (
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b border-slate-600 mr-1"></div>
+                        Loading...
                       </span>
                     </div>
-                    {restaurant.distanceLoading ? (
-                      <div className="absolute top-4 left-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b border-slate-600 mr-1"></div>
-                          Loading...
-                        </span>
-                      </div>
-                    ) : restaurant.distanceText && (
-                      <div className="absolute top-4 left-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          📍 {restaurant.distanceText}
-                        </span>
-            </div>
-          )}
-        </div>
+                  ) : restaurant.distanceText && (
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
+                        backgroundColor: 'var(--accent, #f97316)',
+                        color: 'var(--foreground, #f1f5f9)'
+                      }}>
+                        📍 {restaurant.distanceText}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-white mb-2">{restaurant.name}</h3>
-                    <p className="text-slate-300 text-sm mb-4">{restaurant.description || 'Delicious food awaits you!'}</p>
-            
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <span className="text-yellow-400">⭐</span>
-                        <span className="text-white ml-1">{restaurant.rating.toFixed(1)}</span>
-                      </div>
-                      <div className="text-slate-300 text-sm">
-                        {restaurant.city}
-                </div>
-              </div>
-              
-                    <div className="flex items-center justify-between text-sm text-slate-400 mb-4">
-                      <span>🕐 {restaurant.averagePrepTime} min</span>
-                      <div className="flex items-center gap-2">
-                        {currentSort === 'price' && restaurant.averagePrice && (
-                          <span>💰 €{restaurant.averagePrice.toFixed(2)} avg</span>
-                        )}
-                        {restaurant.distanceLoading ? (
-                          <div className="flex items-center">
-                            <div className="animate-spin rounded-full h-3 w-3 border-b border-slate-400 mr-1"></div>
-                            <span>Calculating...</span>
-                          </div>
-                        ) : restaurant.distance && (
-                          <span>📍 {restaurant.distance.toFixed(1)} km</span>
-                        )}
-                      </div>
-              </div>
-              
-                    <button 
-                      onClick={(e) => handleViewMenuClick(e, restaurant.id)}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
-                    >
-                      View Menu
-                    </button>
-                  </div>
-                </div>
-              ))}
-              </div>
-          )}
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--foreground, #f1f5f9)' }}>{restaurant.name}</h3>
+                  <p className="text-sm mb-4" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>{restaurant.description || 'Delicious food awaits you!'}</p>
           
-          {!loading && restaurants.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-slate-300 text-lg">No restaurants found in your area.</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-        {/* Footer */}
-      <footer className="bg-slate-800 text-slate-300 py-8 mt-16">
-        <div className="container mx-auto px-4 text-center">
-            <p>&copy; 2024 Lieferspatz. All rights reserved.</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <span className="text-yellow-400">⭐</span>
+                      <span className="ml-1" style={{ color: 'var(--foreground, #f1f5f9)' }}>{restaurant.rating.toFixed(1)}</span>
+                    </div>
+                    <div className="text-sm" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>
+                      {restaurant.city}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm mb-4" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.7 }}>
+                    <span>🕐 {restaurant.averagePrepTime} min</span>
+                    <div className="flex items-center gap-2">
+                      {currentSort === 'price' && restaurant.averagePrice && (
+                        <span>💰 €{restaurant.averagePrice.toFixed(2)} avg</span>
+                      )}
+                      {restaurant.distanceLoading ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-3 w-3 border-b mr-1" style={{ borderColor: 'var(--foreground, #f1f5f9)' }}></div>
+                          <span>Calculating...</span>
+                        </div>
+                      ) : restaurant.distance && (
+                        <span>📍 {restaurant.distance.toFixed(1)} km</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => handleViewMenuClick(e, restaurant.id)}
+                    className="w-full font-semibold py-2 px-4 rounded-lg transition duration-300"
+                    style={{
+                      backgroundColor: 'var(--accent, #f97316)',
+                      color: 'var(--foreground, #f1f5f9)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(0.9)'}
+                    onMouseLeave={(e) => e.currentTarget.style.filter = 'brightness(1)'}
+                  >
+                    View Menu
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </footer>
+        )}
+        
+        {!loading && restaurants.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-lg" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>No restaurants found in your area.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

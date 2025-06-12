@@ -209,19 +209,19 @@ export default function CheckoutPage() {
   if (orderPlaced && orderDetails) {
     console.log('🎯 Rendering success page with:', { orderPlaced, orderDetails });
     return (
-      <div className="min-h-screen bg-gray-100 pt-20">
+      <div className="min-h-screen pt-20">
         <div className="max-w-2xl mx-auto px-6 py-8">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-theme-card rounded-lg shadow-lg p-8 text-center" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: 'var(--primary, #14b8a6)', opacity: 0.2 }}>
+                              <svg className="w-8 h-8" style={{ color: 'var(--primary, #14b8a6)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Order Placed Successfully!</h1>
-            <p className="text-gray-600 mb-6">Your order has been sent to the restaurant and they will start preparing it soon.</p>
+            <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--foreground, #f1f5f9)' }}>Order Placed Successfully!</h1>
+            <p className="mb-6" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>Your order has been sent to the restaurant and they will start preparing it soon.</p>
             
-            <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
+            <div className="bg-slate-700 rounded-lg p-6 mb-6 text-left">
               <h3 className="font-semibold text-lg mb-4">Order Details</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -267,20 +267,20 @@ export default function CheckoutPage() {
   console.log('🔍 Current state:', { orderPlaced, orderDetails: !!orderDetails, itemsLength: state.items.length });
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-20">
+    <div className="min-h-screen pt-20">
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold text-white mb-8">Checkout</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Order Summary */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
+            <div className="bg-theme-card rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold text-white mb-6">Order Summary</h2>
               
               {restaurant && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold text-gray-800">{restaurant.name}</h3>
-                  <p className="text-gray-600 text-sm">{restaurant.address}</p>
+                <div className="bg-slate-700 rounded-lg p-4 mb-6">
+                  <h3 className="font-semibold text-white">{restaurant.name}</h3>
+                  <p className="text-slate-300 text-sm">{restaurant.address}</p>
                 </div>
               )}
 
@@ -312,8 +312,8 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery Information */}
-            <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Delivery Information</h2>
+            <div className="bg-theme-card rounded-lg shadow-lg p-6 mt-6">
+              <h2 className="text-xl font-bold text-white mb-4">Delivery Information</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -342,8 +342,8 @@ export default function CheckoutPage() {
 
           {/* Payment Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">Payment Summary</h2>
+            <div className="bg-theme-card rounded-lg shadow-lg p-6 sticky top-24">
+              <h2 className="text-xl font-bold text-white mb-6">Payment Summary</h2>
               
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between">

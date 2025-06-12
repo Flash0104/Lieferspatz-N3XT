@@ -1,10 +1,38 @@
 @import "tailwindcss";
 
+/* Global scaling to 80% for better screen fit */
+html {
+  zoom: 0.8;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Remove the global gradient background that was causing issues */
+/* body {
+  background: linear-gradient(135deg, var(--background) 0%, var(--card) 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: var(--transition-theme);
+} */
+
 :root {
   --background: #0f172a; /* slate-900 */
   --foreground: #f1f5f9; /* slate-100 */
   --primary: #14b8a6;
   --primary-hover: #0f766e;
+  --accent: #f97316;
+  --card: #1e293b;
+  
+  /* Theme transition */
+  --transition-theme: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -14,11 +42,67 @@
   }
 }
 
-body {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  min-height: 100vh;
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Force theme variables on all major elements - but not for auth pages */
+.min-h-screen:not(.auth-page) {
+  background: linear-gradient(135deg, var(--background) 0%, var(--card) 100%) !important;
+  color: var(--foreground) !important;
+}
+
+/* Header theme support */
+.header-theme, header, nav {
+  background-color: var(--card) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  transition: var(--transition-theme);
+  color: var(--foreground) !important;
+}
+
+/* Container and card backgrounds */
+.bg-slate-800, .bg-slate-900, .bg-gray-900 {
+  background-color: var(--card) !important;
+}
+
+.bg-slate-700 {
+  background-color: var(--background) !important;
+}
+
+/* Text colors */
+.text-white, .text-slate-100, .text-gray-100 {
+  color: var(--foreground) !important;
+}
+
+.text-slate-300, .text-gray-300 {
+  color: var(--foreground) !important;
+  opacity: 0.8;
+}
+
+/* Theme-aware utility classes */
+.bg-theme-primary {
+  background-color: var(--primary);
+}
+
+.bg-theme-primary-hover:hover {
+  background-color: var(--primary-hover);
+}
+
+.text-theme-primary {
+  color: var(--primary);
+}
+
+.border-theme-primary {
+  border-color: var(--primary);
+}
+
+.bg-theme-card {
+  background-color: var(--card);
+}
+
+.bg-theme-accent {
+  background-color: var(--accent);
 }
 
 /* Cart Sidebar Styles */
@@ -28,9 +112,10 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 9998;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
 }
 
 .cart-sidebar {
@@ -38,47 +123,113 @@ body {
   top: 0;
   right: 0;
   height: 100vh;
-  width: 400px;
-  max-width: 90vw;
-  background: white;
+  width: 540px;
+  max-width: 95vw;
+  background: var(--card);
+  color: var(--foreground);
   z-index: 9999;
   transform: translateX(100%);
-  transition: transform 0.3s ease;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  border-left: 1px solid rgba(148, 163, 184, 0.2);
+  min-height: 122vh;
+  max-height: 122vh;
 }
 
 .cart-sidebar.open {
   transform: translateX(0);
 }
 
+/* Ensure proper scrolling in cart items area */
+.cart-sidebar .flex-1 {
+  min-height: 0; /* Allow flex item to shrink */
+}
+
+/* Custom scrollbar for cart */
+.cart-sidebar .overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cart-sidebar .overflow-y-auto::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 3px;
+}
+
+.cart-sidebar .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+
+.cart-sidebar .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
 /* Restaurant card hover effects */
 .restaurant-card {
   transition: all 0.2s ease-in-out;
+  background-color: var(--card) !important;
+  border-color: rgba(148, 163, 184, 0.2);
 }
 
 .restaurant-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary);
 }
 
 /* Menu item cards */
 .menu-item {
   transition: all 0.2s ease-in-out;
+  background-color: var(--card) !important;
 }
 
 .menu-item:hover {
   transform: translateY(-3px);
+  border-color: var(--primary);
 }
 
 /* Button styles */
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  transition: background 0.2s ease;
+.btn-primary, button[class*="bg-teal"], button[class*="bg-blue"], button[class*="bg-green"] {
+  background: var(--primary) !important;
+  color: var(--foreground) !important;
+  transition: var(--transition-theme);
 }
 
-.btn-primary:hover {
-  background: var(--primary-hover);
+.btn-primary:hover, button[class*="bg-teal"]:hover, button[class*="bg-blue"]:hover, button[class*="bg-green"]:hover {
+  background: var(--primary-hover) !important;
+}
+
+/* Input theme support */
+.input-theme, input, textarea, select {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: rgba(148, 163, 184, 0.3);
+  transition: var(--transition-theme);
+}
+
+.input-theme:focus, input:focus, textarea:focus, select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
+}
+
+/* Theme picker specific styles */
+.theme-picker-preview {
+  transition: var(--transition-theme);
+}
+
+/* Force theme on all backgrounds - but not auth pages */
+div[class*="bg-slate"]:not(.auth-page), div[class*="bg-gray"]:not(.auth-page) {
+  background-color: var(--card) !important;
+}
+
+/* Orange button overrides */
+button[class*="bg-orange"], .bg-orange-500, .bg-orange-600 {
+  background-color: var(--accent) !important;
+}
+
+button[class*="bg-orange"]:hover, .bg-orange-500:hover, .bg-orange-600:hover {
+  background-color: var(--accent) !important;
+  filter: brightness(0.9);
 }

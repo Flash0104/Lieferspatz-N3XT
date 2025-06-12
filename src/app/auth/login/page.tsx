@@ -54,122 +54,140 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-teal-400 to-teal-600 text-white py-4 px-8 shadow-md">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-                      <Link href="/" className="text-2xl font-bold hover:text-gray-200 transition flex items-center">
-              <img src="/favicon.ico" alt="Lieferspatz Logo" className="w-8 h-8 mr-2 bg-white rounded-full p-1" />
-              Lieferspatz
-            </Link>
-          <div className="flex items-center space-x-4">
-            <Link href="/auth/login" className="bg-white text-teal-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
-              Login
-            </Link>
-            <Link href="/auth/register" className="bg-teal-700 text-white px-4 py-2 rounded-lg hover:bg-teal-800 transition">
-              Register
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex items-center justify-center py-12 px-6 min-h-[calc(100vh-80px)]">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full flex flex-col md:flex-row">
+    <div className="flex items-center justify-center min-h-screen px-4 py-8 pt-24">
+      <div className="p-8 rounded-lg shadow-lg max-w-4xl w-full flex flex-col md:flex-row" style={{
+        backgroundColor: 'var(--card, #1e293b)',
+        color: 'var(--foreground, #f1f5f9)'
+      }}>
+        {/* Form Section */}
+        <div className="w-full md:w-1/2 p-6 flex flex-col justify-center">
+          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+            Login
+          </h2>
           
-          {/* Form Section */}
-          <div className="w-full md:w-1/2 p-6 flex flex-col justify-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Login</h2>
-            
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {error}
-              </div>
-            )}
+          {error && (
+            <div className="border px-4 py-3 rounded mb-4" style={{
+              backgroundColor: '#fecaca',
+              borderColor: '#f87171',
+              color: '#dc2626'
+            }}>
+              {error}
+            </div>
+          )}
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-semibold mb-2">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block font-semibold mb-2" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border p-3 w-full rounded-lg focus:ring-2 focus:outline-none input-theme"
+                style={{
+                  backgroundColor: 'var(--background, #0f172a)',
+                  borderColor: 'rgba(148, 163, 184, 0.3)',
+                  color: 'var(--foreground, #f1f5f9)'
+                }}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-gray-700 font-semibold mb-2">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block font-semibold mb-2" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border p-3 w-full rounded-lg focus:ring-2 focus:outline-none input-theme"
+                style={{
+                  backgroundColor: 'var(--background, #0f172a)',
+                  borderColor: 'rgba(148, 163, 184, 0.3)',
+                  color: 'var(--foreground, #f1f5f9)'
+                }}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
 
-              {/* Login Buttons */}
-              <div className="space-y-3 mt-6">
-                {/* Customer Login */}
-                <button
-                  onClick={() => handleLogin('customer')}
-                  disabled={isLoading}
-                  className="w-full bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition duration-300 disabled:opacity-50"
+            {/* Login Buttons */}
+            <div className="space-y-3 mt-6">
+              {/* Customer Login */}
+              <button
+                onClick={() => handleLogin('customer')}
+                disabled={isLoading}
+                className="w-full py-3 rounded-lg transition duration-300 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--primary, #14b8a6)',
+                  color: 'var(--primary-foreground, #ffffff)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-hover, #0f766e)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary, #14b8a6)'}
+              >
+                {isLoading ? 'Logging in...' : 'Login as a customer'}
+              </button>
+
+              {/* Restaurant Login */}
+              <button
+                onClick={() => handleLogin('restaurant')}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center p-3 rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--card, #1e293b)',
+                  borderColor: 'rgba(148, 163, 184, 0.3)',
+                  color: 'var(--foreground, #f1f5f9)',
+                  border: '1px solid rgba(148, 163, 184, 0.3)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--background, #0f172a)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--card, #1e293b)'}
+              >
+                <span className="font-medium">Login as a restaurant</span>
+              </button>
+
+              {/* Admin Login */}
+              <button
+                onClick={() => handleLogin('admin')}
+                disabled={isLoading}
+                className="w-full py-3 rounded-lg transition duration-300 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--accent, #ef4444)',
+                  color: 'var(--accent-foreground, #ffffff)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--accent, #ef4444)'}
+              >
+                {isLoading ? 'Logging in...' : 'Login as admin'}
+              </button>
+            </div>
+
+            <div className="text-center mt-6">
+              <p style={{ color: 'var(--muted-foreground, #94a3b8)' }}>
+                Don't have an account?{' '}
+                <Link 
+                  href="/auth/register" 
+                  className="hover:underline font-medium"
+                  style={{ color: 'var(--primary, #14b8a6)' }}
                 >
-                  {isLoading ? 'Logging in...' : 'Login as a customer'}
-                </button>
-
-                {/* Restaurant Login */}
-                <button
-                  onClick={() => handleLogin('restaurant')}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center bg-white border border-gray-300 p-3 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-100 transition-all disabled:opacity-50"
-                >
-                  <span className="text-gray-700 font-medium">Login as a restaurant</span>
-                </button>
-
-                {/* Admin Login */}
-                <button
-                  onClick={() => handleLogin('admin')}
-                  disabled={isLoading}
-                  className="w-full bg-gray-800 text-white py-3 rounded-lg hover:bg-gray-900 transition duration-300 disabled:opacity-50"
-                >
-                  {isLoading ? 'Logging in...' : 'Login as admin'}
-                </button>
-              </div>
-
-              <div className="text-center mt-6">
-                <p className="text-gray-600">
-                  Don't have an account?{' '}
-                  <Link href="/auth/register" className="text-teal-600 hover:underline font-medium">
-                    Register here
-                  </Link>
-                </p>
-              </div>
+                  Register here
+                </Link>
+              </p>
             </div>
           </div>
-
-          {/* Image Section */}
-          <div className="w-full md:w-1/2 flex justify-center items-center">
-            <img 
-              src="https://placehold.co/500x400/e5e7eb/6b7280?text=Welcome+Back"
-              alt="Welcome Image" 
-              className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow"
-            />
-          </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p>&copy; 2024 Lieferspatz. All rights reserved.</p>
+        {/* Image Section */}
+        <div className="w-full md:w-1/2 flex justify-center items-center">
+          <img
+            src="https://placehold.co/500x400/1e293b/f1f5f9?text=Welcome+Back"
+            alt="Welcome Image"
+            className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow"
+          />
         </div>
-      </footer>
+      </div>
     </div>
   );
 } 
