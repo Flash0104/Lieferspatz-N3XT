@@ -309,10 +309,10 @@ export default function RestaurantAnalyticsModal({ restaurantId, isOpen, onClose
                             </div>
                           </div>
                           <div className="mt-3 text-sm text-gray-600">
-                            {order.items.map((item: any, index: number) => (
+                            {order.orderItems.map((item: any, index: number) => (
                               <span key={index}>
                                 {item.quantity}x {item.menuItem.name}
-                                {index < order.items.length - 1 ? ', ' : ''}
+                                {index < order.orderItems.length - 1 ? ', ' : ''}
                               </span>
                             ))}
                           </div>

@@ -1,0 +1,10 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#F3F4F6"/>
+  <circle cx="100" cy="100" r="80" fill="#E5E7EB"/>
+  <path d="M60 80C60 68.9543 68.9543 60 80 60H120C131.046 60 140 68.9543 140 80V120C140 131.046 131.046 140 120 140H80C68.9543 140 60 131.046 60 120V80Z" fill="#9CA3AF"/>
+  <path d="M70 90C70 85.5817 73.5817 82 78 82H122C126.418 82 130 85.5817 130 90V110C130 114.418 126.418 118 122 118H78C73.5817 118 70 114.418 70 110V90Z" fill="#6B7280"/>
+  <circle cx="85" cy="100" r="8" fill="#F59E0B"/>
+  <circle cx="115" cy="100" r="8" fill="#F59E0B"/>
+  <path d="M100 110C100 105.029 104.029 101 109 101H91C95.9706 101 100 105.029 100 110Z" fill="#F59E0B"/>
+  <text x="100" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6B7280">Restaurant</text>
+</svg>

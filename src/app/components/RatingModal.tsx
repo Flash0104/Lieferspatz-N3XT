@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface RatingModalProps {
   isOpen: boolean
@@ -15,6 +15,34 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
   const [hoveredRating, setHoveredRating] = useState(0)
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Handle body scroll lock when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  // Handle keyboard events separately
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,15 +72,26 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleClose()
+        }
+      }}
+    >
+      <div className="rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto" style={{
+        backgroundColor: 'var(--card)',
+        color: 'var(--foreground)'
+      }}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Rate Your Order</h2>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Rate Your Order</h2>
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+              className="transition-colors disabled:opacity-50 hover:bg-red-500/10 p-2 rounded-lg"
+              style={{ color: 'var(--foreground)', opacity: 0.7 }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -61,8 +100,8 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
           </div>
 
           <div className="text-center mb-6">
-            <div className="text-gray-600 mb-2">How was your experience with</div>
-            <div className="text-lg font-semibold text-gray-900">{restaurantName}?</div>
+            <div className="mb-2" style={{ color: 'var(--foreground)', opacity: 0.7 }}>How was your experience with</div>
+            <div className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>{restaurantName}?</div>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -105,7 +144,7 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
             {/* Rating Text */}
             {rating > 0 && (
               <div className="text-center mb-4">
-                <span className="text-sm font-medium text-gray-600">
+                <span className="text-sm font-medium" style={{ color: 'var(--primary)' }}>
                   {rating === 1 && 'Poor'}
                   {rating === 2 && 'Fair'}
                   {rating === 3 && 'Good'}
@@ -117,7 +156,7 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
 
             {/* Comment */}
             <div className="mb-6">
-              <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="comment" className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
                 Additional Comments (Optional)
               </label>
               <textarea
@@ -126,11 +165,16 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
                 onChange={(e) => setComment(e.target.value)}
                 disabled={isSubmitting}
                 placeholder="Tell us about your experience..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none disabled:opacity-50"
+                className="w-full px-3 py-2 rounded-lg resize-none disabled:opacity-50 transition-all"
+                style={{
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  border: '1px solid rgba(148, 163, 184, 0.3)'
+                }}
                 rows={3}
                 maxLength={500}
               />
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs mt-1" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
                 {comment.length}/500 characters
               </div>
             </div>
@@ -141,14 +185,23 @@ export default function RatingModal({ isOpen, onClose, onSubmit, restaurantName,
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  border: '1px solid rgba(148, 163, 184, 0.3)'
+                }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={rating === 0 || isSubmitting}
-                className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: 'var(--primary)',
+                  color: 'white'
+                }}
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">

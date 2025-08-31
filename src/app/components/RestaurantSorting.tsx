@@ -60,12 +60,23 @@ export default function RestaurantSorting({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-white rounded-lg shadow-sm border">
+    <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 rounded-lg shadow-sm border" style={{
+      backgroundColor: 'var(--card, #1e293b)',
+      borderColor: 'rgba(148, 163, 184, 0.2)',
+      color: 'var(--foreground, #f1f5f9)'
+    }}>
       {/* Sort By Dropdown */}
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full sm:w-48 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+          className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border rounded-lg transition"
+          style={{
+            backgroundColor: 'var(--background, #0f172a)',
+            borderColor: 'rgba(148, 163, 184, 0.3)',
+            color: 'var(--foreground, #f1f5f9)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--background, #0f172a)'}
         >
           <span className="flex items-center gap-2">
             <span>{sortOptions.find(opt => opt.value === currentSort)?.icon}</span>
@@ -77,19 +88,34 @@ export default function RestaurantSorting({
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+          <div className="absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-10" style={{
+            backgroundColor: 'var(--card, #1e293b)',
+            borderColor: 'rgba(148, 163, 184, 0.3)'
+          }}>
             {sortOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => handleSortChange(option.value)}
-                className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 ${
-                  currentSort === option.value ? 'bg-teal-50 text-teal-700' : ''
-                }`}
+                className="w-full px-4 py-2 text-left flex items-center gap-2 transition"
+                style={{
+                  color: currentSort === option.value ? 'var(--primary, #14b8a6)' : 'var(--foreground, #f1f5f9)',
+                  backgroundColor: currentSort === option.value ? 'rgba(20, 184, 166, 0.1)' : 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  if (currentSort !== option.value) {
+                    e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentSort !== option.value) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
               >
                 <span>{option.icon}</span>
                 <span>{option.label}</span>
                 {currentSort === option.value && (
-                  <span className="ml-auto text-teal-600">✓</span>
+                  <span className="ml-auto" style={{ color: 'var(--primary, #14b8a6)' }}>✓</span>
                 )}
               </button>
             ))}
@@ -101,7 +127,14 @@ export default function RestaurantSorting({
       {currentSort !== 'admin' && (
         <button
           onClick={toggleOrder}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+          className="flex items-center gap-2 px-4 py-2 border rounded-lg transition"
+          style={{
+            backgroundColor: 'var(--background, #0f172a)',
+            borderColor: 'rgba(148, 163, 184, 0.3)',
+            color: 'var(--foreground, #f1f5f9)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--background, #0f172a)'}
         >
           <span>{currentOrder === 'asc' ? '↑' : '↓'}</span>
           <span className="font-medium">
@@ -110,7 +143,7 @@ export default function RestaurantSorting({
               : currentSort === 'rating'
               ? (currentOrder === 'asc' ? 'Lowest Rating' : 'Highest Rating')
               : currentSort === 'distance'
-              ? (currentOrder === 'asc' ? 'Closest First' : 'Farthest First')
+              ? (currentOrder === 'asc' ? 'Farthest First' : 'Closest First')
               : (currentOrder === 'asc' ? 'A-Z' : 'Z-A')
             }
           </span>
@@ -120,7 +153,14 @@ export default function RestaurantSorting({
       {/* City Filter Toggle */}
       <button
         onClick={toggleCityFilter}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+        className="flex items-center gap-2 px-4 py-2 border rounded-lg transition"
+        style={{
+          backgroundColor: 'var(--background, #0f172a)',
+          borderColor: 'rgba(148, 163, 184, 0.3)',
+          color: 'var(--foreground, #f1f5f9)'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--background, #0f172a)'}
       >
         <span>{currentCityFilter === 'same' ? '🏠' : '🌍'}</span>
         <span className="font-medium">
@@ -132,13 +172,13 @@ export default function RestaurantSorting({
       </button>
 
       {/* Current Filters Display */}
-      <div className="flex items-center gap-2 text-sm text-gray-600 ml-auto">
+      <div className="flex items-center gap-2 text-sm ml-auto" style={{ color: 'rgba(241, 245, 249, 0.7)' }}>
         <span>Showing:</span>
-        <span className="font-medium text-teal-600">
+        <span className="font-medium" style={{ color: 'var(--primary, #14b8a6)' }}>
           {currentCityFilter === 'same' ? `${userCity || 'Your City'}` : 'All Cities'}
         </span>
         <span>•</span>
-        <span className="font-medium text-teal-600">
+        <span className="font-medium" style={{ color: 'var(--primary, #14b8a6)' }}>
           {getCurrentSortLabel()}
           {currentSort !== 'admin' && (
             <span className="ml-1">

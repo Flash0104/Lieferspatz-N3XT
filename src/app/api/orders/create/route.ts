@@ -155,12 +155,12 @@ export async function POST(request: NextRequest) {
             originalFee: restaurantAmount,
             serviceFee: serviceFee,
             status: 'PENDING',
-            items: {
+            orderItems: {
               create: orderItems
             }
           },
           include: {
-            items: {
+            orderItems: {
               include: {
                 menuItem: true
               }

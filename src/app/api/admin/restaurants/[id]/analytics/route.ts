@@ -76,7 +76,7 @@ export async function GET(
             }
           }
         },
-        items: {
+        orderItems: {
           include: {
             menuItem: {
               select: {

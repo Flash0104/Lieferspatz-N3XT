@@ -3,17 +3,22 @@
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBalance } from '../context/BalanceContext';
 import { useCart } from '../context/CartContext';
 
-export default function Header() {
+interface HeaderProps {
+  restaurantImageUrl?: string;
+}
+
+export default function Header({ restaurantImageUrl }: HeaderProps) {
   const { state, toggleCart } = useCart();
   const { data: session, status } = useSession();
   const { balance } = useBalance();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [restaurantProfilePhoto, setRestaurantProfilePhoto] = useState<string | undefined>(restaurantImageUrl);
 
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
@@ -47,8 +52,31 @@ export default function Header() {
     }
   };
 
+  // Fetch restaurant profile photo when user is a restaurant
+  useEffect(() => {
+    const fetchRestaurantPhoto = async () => {
+      if (session?.user?.userType === 'RESTAURANT' && !restaurantProfilePhoto) {
+        try {
+          const response = await fetch('/api/user/restaurant');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.restaurant?.imageUrl) {
+              setRestaurantProfilePhoto(data.restaurant.imageUrl);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching restaurant photo:', error);
+        }
+      }
+    };
+
+    if (session?.user?.userType === 'RESTAURANT') {
+      fetchRestaurantPhoto();
+    }
+  }, [session, restaurantProfilePhoto]);
+
   return (
-    <header className="bg-gradient-to-r from-slate-800 to-slate-700 text-white py-3 px-4 lg:px-8 shadow-md fixed top-0 left-0 right-0 z-50">
+    <header className="bg-gradient-to-r from-slate-800 to-slate-700 text-white py-4 px-4 lg:px-8 shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="flex justify-between items-center">
         {/* Left side - Menu + Logo */}
         <div className="flex items-center min-w-0">
@@ -74,22 +102,35 @@ export default function Header() {
                 ></div>
                 
                 {/* Menu Content */}
-                <div className="absolute top-12 left-0 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[250px] z-50 overflow-hidden">
+                <div className="absolute top-12 left-0 rounded-lg shadow-xl border min-w-[250px] z-50 overflow-hidden" style={{
+                  backgroundColor: 'var(--card)',
+                  color: 'var(--foreground)',
+                  borderColor: 'rgba(148, 163, 184, 0.2)'
+                }}>
                   {session ? (
                     <div className="py-2">
                       {/* User Info Header */}
-                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                      <div className="px-4 py-3 border-b" style={{
+                        borderColor: 'rgba(148, 163, 184, 0.2)',
+                        backgroundColor: 'var(--background)'
+                      }}>
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border-2 border-teal-200">
+                          <div className="w-14 h-14 rounded-full overflow-hidden mr-3 border-2" style={{
+                            borderColor: 'var(--primary)'
+                          }}>
                             <img 
-                              src={session.user.profilePicture || '/images/default-profile.png'} 
+                              src={restaurantProfilePhoto || restaurantImageUrl || session.user.profilePicture || '/images/default-profile.png'} 
                               alt="Profile"
                               className="w-full h-full object-cover"
                             />
                           </div>
                           <div>
-                            <div className="font-semibold text-sm">{session.user.firstName} {session.user.lastName}</div>
-                            <div className="text-xs text-gray-500">{session.user.email}</div>
+                            <div className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
+                              {session.user.firstName} {session.user.lastName}
+                            </div>
+                            <div className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                              {session.user.email}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -99,9 +140,12 @@ export default function Header() {
                         <Link 
                           href="/"
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-4 py-3 text-sm transition-colors"
+                          style={{ color: 'var(--foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                           </svg>
                           Home
@@ -110,9 +154,12 @@ export default function Header() {
                         <Link 
                           href={getDashboardUrl()}
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-4 py-3 text-sm transition-colors"
+                          style={{ color: 'var(--foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                           </svg>
                           {session.user.userType === 'ADMIN' ? 'Admin Panel' : 
@@ -121,39 +168,46 @@ export default function Header() {
 
                         {/* Balance for customers and restaurants */}
                         {(session.user.userType === 'CUSTOMER' || session.user.userType === 'RESTAURANT') && (
-                          <div className="flex items-center px-4 py-3 text-sm border-t border-gray-100">
-                            <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="flex items-center px-4 py-3 text-sm border-t" style={{ borderColor: 'rgba(148, 163, 184, 0.2)' }}>
+                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                             </svg>
-                            <span className="text-gray-600">Balance: </span>
-                            <span className="font-semibold text-green-600 ml-1">€{(balance ?? session.user.balance ?? 0).toFixed(2)}</span>
+                            <span style={{ color: 'var(--foreground)', opacity: 0.8 }}>Balance: </span>
+                            <span className="font-semibold ml-1" style={{ color: '#22c55e' }}>€{(balance ?? session.user.balance ?? 0).toFixed(2)}</span>
                           </div>
                         )}
 
                         {/* Settings */}
-                        <Link 
+                        <a 
                           href="/settings"
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                          target="_self"
+                          className="flex items-center px-4 py-3 text-sm transition-colors"
+                          style={{ color: 'var(--foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                           </svg>
                           Settings
-                        </Link>
+                        </a>
                       </div>
 
                       {/* Logout */}
-                      <div className="border-t border-gray-100 py-1">
+                      <div className="border-t py-1" style={{ borderColor: 'rgba(148, 163, 184, 0.2)' }}>
                         <button
                           onClick={() => {
                             closeMenu();
                             handleSignOut();
                           }}
-                          className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="flex items-center w-full px-4 py-3 text-sm transition-colors"
+                          style={{ color: '#ef4444' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#ef4444' }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                           </svg>
                           Sign Out
@@ -163,18 +217,24 @@ export default function Header() {
                   ) : (
                     <div className="py-2">
                       {/* Guest Menu */}
-                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <div className="text-sm font-semibold text-gray-600">Welcome to Lieferspatz</div>
-                        <div className="text-xs text-gray-500">Sign in to access your profile</div>
+                      <div className="px-4 py-3 border-b" style={{
+                        borderColor: 'rgba(148, 163, 184, 0.2)',
+                        backgroundColor: 'var(--background)'
+                      }}>
+                        <div className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Welcome to Lieferspatz</div>
+                        <div className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Sign in to access your profile</div>
                       </div>
                       
                       <div className="py-1">
                         <Link 
                           href="/"
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-4 py-3 text-sm transition-colors"
+                          style={{ color: 'var(--foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                           </svg>
                           Home
@@ -183,9 +243,12 @@ export default function Header() {
                         <Link 
                           href="/auth/login"
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-4 py-3 text-sm transition-colors"
+                          style={{ color: 'var(--foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                           </svg>
                           Sign In
@@ -194,9 +257,12 @@ export default function Header() {
                         <Link 
                           href="/auth/register"
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-4 py-3 text-sm transition-colors"
+                          style={{ color: 'var(--foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                           </svg>
                           Create Account
@@ -210,7 +276,7 @@ export default function Header() {
           </div>
 
                       <Link href="/" className="text-xl lg:text-2xl font-bold hover:text-gray-200 transition flex items-center">
-              <img src="/favicon.ico" alt="Lieferspatz Logo" className="w-8 h-8 mr-2 bg-white rounded-full p-1" />
+              <img src="/favicon.ico" alt="Lieferspatz Logo" className="w-12 h-12 mr-2" />
               Lieferspatz
             </Link>
         </div>
@@ -246,9 +312,9 @@ export default function Header() {
             <>
               {/* User Info - Hidden on mobile, shown on larger screens */}
               <div className="hidden lg:flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
                   <img 
-                    src={session.user.profilePicture || '/images/default-profile.png'} 
+                    src={restaurantProfilePhoto || restaurantImageUrl || session.user.profilePicture || '/images/default-profile.png'} 
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -332,7 +398,7 @@ export default function Header() {
       </div>
 
       {/* Mobile Search Bar */}
-      <div className="md:hidden mt-3">
+      <div className="md:hidden mt-4">
         <form onSubmit={handleSearch}>
           <div className="flex rounded-lg bg-white overflow-hidden shadow-sm">
             <input

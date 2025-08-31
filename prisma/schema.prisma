@@ -102,23 +102,25 @@ model MenuItem {
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
-  userId          Int         @map("user_id")
-  customerId      Int         @map("customer_id")
-  restaurantId    Int         @map("restaurant_id")
-  totalPrice      Float       @default(0.0) @map("total_price")
-  originalFee     Float       @default(0.0) @map("original_fee")
-  serviceFee      Float       @default(0.0) @map("service_fee")
-  status          OrderStatus @default(PENDING)
-  cashbackApplied Boolean     @default(false) @map("cashback_applied")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-  items           OrderItem[]
-  customer        Customer    @relation(fields: [customerId], references: [id])
-  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
-  user            User        @relation(fields: [userId], references: [id])
-  payment         Payment?
-  rating          Rating?
+  id                    Int         @id @default(autoincrement())
+  userId                Int         @map("user_id")
+  customerId            Int         @map("customer_id")
+  restaurantId          Int         @map("restaurant_id")
+  totalPrice            Float       @default(0.0) @map("total_price")
+  originalFee           Float       @default(0.0) @map("original_fee")
+  serviceFee            Float       @default(0.0) @map("service_fee")
+  status                OrderStatus @default(PENDING)
+  cashbackApplied       Boolean     @default(false) @map("cashback_applied")
+  estimatedDeliveryTime DateTime?   @map("estimated_delivery_time")
+  deliveryInstructions  String?     @map("delivery_instructions")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  orderItems            OrderItem[]
+  customer              Customer    @relation(fields: [customerId], references: [id])
+  restaurant            Restaurant  @relation(fields: [restaurantId], references: [id])
+  user                  User        @relation(fields: [userId], references: [id])
+  payment               Payment?
+  rating                Rating?
 
   @@map("orders")
 }
@@ -178,5 +180,8 @@ enum OrderStatus {
 
 enum CourierType {
   CYCLE
+  WALKING
+  BICYCLE
   MOTORCYCLE
+  CAR
 }

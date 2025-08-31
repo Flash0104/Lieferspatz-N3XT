@@ -21,6 +21,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     console.log('🔍 Checkout useEffect - Status:', status, 'Hydrated:', isHydrated, 'Items:', state.items.length, 'Session:', !!session);
@@ -53,7 +54,8 @@ export default function CheckoutPage() {
     }
 
     // Only check cart after both session and cart are ready
-    if (state.items.length === 0) {
+    // Don't redirect if order has been placed successfully
+    if (state.items.length === 0 && !orderPlaced) {
       console.log('🛒 Cart appears empty after hydration');
       
       // Double-check localStorage directly to ensure cart is really empty
@@ -74,7 +76,7 @@ export default function CheckoutPage() {
       console.log('✅ Cart is confirmed empty, will redirect to home after delay');
       // Add a delay to prevent premature redirects during hydration race conditions
       setTimeout(() => {
-        if (state.items.length === 0) {
+        if (state.items.length === 0 && !orderPlaced) {
           console.log('🔄 Redirecting to home page - cart still empty');
           router.push('/');
         }
@@ -85,7 +87,31 @@ export default function CheckoutPage() {
     console.log('✅ All checks passed, fetching restaurant info');
     // Get restaurant info from cart items
     fetchRestaurantInfo();
-  }, [session, status, state.items, router, isHydrated]);
+  }, [session, status, state.items, router, isHydrated, orderPlaced]);
+
+  // Auto-redirect to tracking page with countdown - only when order is placed
+  useEffect(() => {
+    if (orderPlaced && orderDetails) {
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(countdownInterval);
+    }
+  }, [orderPlaced, orderDetails]);
+
+  // Handle navigation when countdown reaches 0
+  useEffect(() => {
+    if (orderPlaced && orderDetails && countdown === 0) {
+      router.push(`/order/${orderDetails.id}`);
+    }
+  }, [countdown, orderPlaced, orderDetails, router]);
 
   const fetchRestaurantInfo = async () => {
     if (state.items.length === 0) return;
@@ -129,6 +155,7 @@ export default function CheckoutPage() {
         console.log('📦 Order details:', data.order);
         setOrderDetails(data.order);
         setOrderPlaced(true);
+        setCountdown(3); // Reset countdown for new order
         clearCart();
         console.log('🎉 State updated - orderPlaced:', true);
         
@@ -208,6 +235,7 @@ export default function CheckoutPage() {
 
   if (orderPlaced && orderDetails) {
     console.log('🎯 Rendering success page with:', { orderPlaced, orderDetails });
+    
     return (
       <div className="min-h-screen pt-20">
         <div className="max-w-2xl mx-auto px-6 py-8">
@@ -219,7 +247,8 @@ export default function CheckoutPage() {
             </div>
             
             <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--foreground, #f1f5f9)' }}>Order Placed Successfully!</h1>
-            <p className="mb-6" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>Your order has been sent to the restaurant and they will start preparing it soon.</p>
+            <p className="mb-2" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>Your order has been sent to the restaurant and they will start preparing it soon.</p>
+            <p className="mb-6 text-sm" style={{ color: 'var(--primary, #14b8a6)' }}>Redirecting to order tracking in {countdown} second{countdown !== 1 ? 's' : ''}...</p>
             
             <div className="bg-slate-700 rounded-lg p-6 mb-6 text-left">
               <h3 className="font-semibold text-lg mb-4">Order Details</h3>
@@ -245,10 +274,16 @@ export default function CheckoutPage() {
 
             <div className="space-y-3">
               <button 
-                onClick={() => router.push('/profile/customer')}
+                onClick={() => router.push(`/order/${orderDetails.id}`)}
                 className="w-full bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition font-medium"
               >
-                View Order Status
+                Track Your Order
+              </button>
+              <button 
+                onClick={() => router.push('/profile/customer')}
+                className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition font-medium"
+              >
+                View All Orders
               </button>
               <button 
                 onClick={() => router.push('/')}

@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
             address: true
           }
         },
-        items: {
+        orderItems: {
           include: {
             menuItem: {
               select: {
@@ -129,7 +129,7 @@ export async function PUT(request: NextRequest) {
             location: true
           }
         },
-        items: {
+        orderItems: {
           include: {
             menuItem: {
               select: {

@@ -107,7 +107,26 @@ export default function ImageUpload({
     }
   };
 
-  const displayImage = preview || currentImage || '/images/default-profile.png';
+  const getDefaultImage = () => {
+    if (uploadType === 'restaurant') {
+      return '/images/default-restaurant.svg';
+    } else if (uploadType === 'profile') {
+      return '/images/default-profile.svg';
+    } else {
+      return '/images/default-profile.svg';
+    }
+  };
+
+  const displayImage = preview || currentImage || getDefaultImage();
+  
+  // Debug logging
+  console.log('ImageUpload render:', {
+    uploadType,
+    currentImage,
+    preview,
+    displayImage,
+    defaultImage: getDefaultImage()
+  });
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -144,6 +163,10 @@ export default function ImageUpload({
             src={displayImage}
             alt="Preview"
             className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = getDefaultImage();
+            }}
           />
           
           {uploading && (

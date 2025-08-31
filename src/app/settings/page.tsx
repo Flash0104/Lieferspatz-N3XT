@@ -1,267 +1,266 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 
-interface ColorTheme {
-  id: string;
-  name: string;
-  background: string;
-  foreground: string;
-  primary: string;
-  primaryHover: string;
-  accent: string;
-  card: string;
-  preview: {
-    bg: string;
-    text: string;
-    button: string;
-    buttonHover: string;
-  };
-}
-
-const predefinedThemes: ColorTheme[] = [
-  {
-    id: 'default',
-    name: 'Dark Ocean (Default)',
-    background: '#0f172a',
-    foreground: '#f1f5f9',
-    primary: '#14b8a6',
-    primaryHover: '#0f766e',
-    accent: '#f97316',
-    card: '#1e293b',
-    preview: {
-      bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-      text: '#f1f5f9',
-      button: '#14b8a6',
-      buttonHover: '#0f766e'
-    }
-  },
-  {
-    id: 'blue',
-    name: 'Ocean Blue',
-    background: '#0c1426',
-    foreground: '#e2e8f0',
-    primary: '#3b82f6',
-    primaryHover: '#2563eb',
-    accent: '#f59e0b',
-    card: '#1e293b',
-    preview: {
-      bg: 'linear-gradient(135deg, #0c1426 0%, #1e293b 100%)',
-      text: '#e2e8f0',
-      button: '#3b82f6',
-      buttonHover: '#2563eb'
-    }
-  },
-  {
-    id: 'purple',
-    name: 'Royal Purple',
-    background: '#1a0b2e',
-    foreground: '#f8fafc',
-    primary: '#8b5cf6',
-    primaryHover: '#7c3aed',
-    accent: '#f59e0b',
-    card: '#2d1b54',
-    preview: {
-      bg: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b54 100%)',
-      text: '#f8fafc',
-      button: '#8b5cf6',
-      buttonHover: '#7c3aed'
-    }
-  },
-  {
-    id: 'green',
-    name: 'Forest Green',
-    background: '#0f1a0f',
-    foreground: '#f0fdf4',
-    primary: '#22c55e',
-    primaryHover: '#16a34a',
-    accent: '#f97316',
-    card: '#1a2e1a',
-    preview: {
-      bg: 'linear-gradient(135deg, #0f1a0f 0%, #1a2e1a 100%)',
-      text: '#f0fdf4',
-      button: '#22c55e',
-      buttonHover: '#16a34a'
-    }
-  },
-  {
-    id: 'red',
-    name: 'Crimson Red',
-    background: '#1a0f0f',
-    foreground: '#fef2f2',
-    primary: '#ef4444',
-    primaryHover: '#dc2626',
-    accent: '#f59e0b',
-    card: '#2e1a1a',
-    preview: {
-      bg: 'linear-gradient(135deg, #1a0f0f 0%, #2e1a1a 100%)',
-      text: '#fef2f2',
-      button: '#ef4444',
-      buttonHover: '#dc2626'
-    }
-  },
-  {
-    id: 'orange',
-    name: 'Sunset Orange',
-    background: '#1a0f06',
-    foreground: '#fffbeb',
-    primary: '#f97316',
-    primaryHover: '#ea580c',
-    accent: '#14b8a6',
-    card: '#2e1a0f',
-    preview: {
-      bg: 'linear-gradient(135deg, #1a0f06 0%, #2e1a0f 100%)',
-      text: '#fffbeb',
-      button: '#f97316',
-      buttonHover: '#ea580c'
-    }
-  }
-];
+// Dynamically import LocationPickerMap to avoid SSR issues
+const LocationPickerMap = dynamic(() => import('../components/LocationPickerMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-64 bg-slate-700/30 rounded-lg border border-slate-600/50">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+    </div>
+  )
+});
 
 export default function Settings() {
   const { data: session } = useSession();
-  const [selectedTheme, setSelectedTheme] = useState<string>('default');
-  const [customColors, setCustomColors] = useState({
-    background: '#0f172a',
-    foreground: '#f1f5f9',
-    primary: '#14b8a6',
-    primaryHover: '#0f766e',
-    accent: '#f97316',
-    card: '#1e293b'
-  });
-  const [isCustomMode, setIsCustomMode] = useState(false);
-  const [showSaved, setShowSaved] = useState(false);
-
+  
+  // Theme states
+  const [selectedTheme, setSelectedTheme] = useState('dark');
+  const [primaryColor, setPrimaryColor] = useState('#3b82f6');
+  const [accentColor, setAccentColor] = useState('#10b981');
+  const [themeSaved, setThemeSaved] = useState(false);
+  
+  // Location states
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationAddress, setLocationAddress] = useState('');
+  const [showLocationSaved, setShowLocationSaved] = useState(false);
+  
+  // Load saved theme and location on mount
   useEffect(() => {
-    // Load saved theme from localStorage using user-specific keys
-    if (session?.user?.id) {
-      const userThemeKey = `lieferspatz-theme-${session.user.id}`;
-      const userCustomColorsKey = `lieferspatz-custom-colors-${session.user.id}`;
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('lieferspatz_theme') || 'dark';
+      const savedPrimary = localStorage.getItem('lieferspatz_primary') || '#3b82f6';
+      const savedAccent = localStorage.getItem('lieferspatz_accent') || '#10b981';
+      const savedLocation = localStorage.getItem('lieferspatz_location');
+      const savedAddress = localStorage.getItem('lieferspatz_address');
       
-      const savedTheme = localStorage.getItem(userThemeKey);
-      const savedCustomColors = localStorage.getItem(userCustomColorsKey);
+      setSelectedTheme(savedTheme);
+      setPrimaryColor(savedPrimary);
+      setAccentColor(savedAccent);
       
-      if (savedTheme) {
-        setSelectedTheme(savedTheme);
-        if (savedTheme === 'custom' && savedCustomColors) {
-          setIsCustomMode(true);
-          setCustomColors(JSON.parse(savedCustomColors));
-        }
-      } else {
-        // New user - set to default theme
-        setSelectedTheme('default');
-        setIsCustomMode(false);
+      if (savedLocation) {
+        setCurrentLocation(JSON.parse(savedLocation));
+      }
+      if (savedAddress) {
+        setLocationAddress(savedAddress);
       }
     }
-  }, [session]);
-
-  const applyTheme = (theme: ColorTheme | null) => {
+  }, []);
+  
+  // Apply theme changes
+  const applyTheme = (theme: string, primary: string, accent: string) => {
     const root = document.documentElement;
     
-    if (theme) {
-      root.style.setProperty('--background', theme.background);
-      root.style.setProperty('--foreground', theme.foreground);
-      root.style.setProperty('--primary', theme.primary);
-      root.style.setProperty('--primary-hover', theme.primaryHover);
-      root.style.setProperty('--accent', theme.accent);
-      root.style.setProperty('--card', theme.card);
-      
-      // Update body background with gradient
-      document.body.style.background = `linear-gradient(135deg, ${theme.background} 0%, ${theme.card} 100%)`;
-      document.body.style.color = theme.foreground;
-      
-      console.log('Applied theme in settings:', theme.name);
-    } else if (isCustomMode) {
-      root.style.setProperty('--background', customColors.background);
-      root.style.setProperty('--foreground', customColors.foreground);
-      root.style.setProperty('--primary', customColors.primary);
-      root.style.setProperty('--primary-hover', customColors.primaryHover);
-      root.style.setProperty('--accent', customColors.accent);
-      root.style.setProperty('--card', customColors.card);
-      
-      document.body.style.background = `linear-gradient(135deg, ${customColors.background} 0%, ${customColors.card} 100%)`;
-      document.body.style.color = customColors.foreground;
+    if (theme === 'dark') {
+      root.style.setProperty('--background', '#0f172a');
+      root.style.setProperty('--foreground', '#f1f5f9');
+      root.style.setProperty('--card', '#1e293b');
+    } else if (theme === 'blue') {
+      root.style.setProperty('--background', '#1e3a8a');
+      root.style.setProperty('--foreground', '#dbeafe');
+      root.style.setProperty('--card', '#1e40af');
+    } else if (theme === 'purple') {
+      root.style.setProperty('--background', '#581c87');
+      root.style.setProperty('--foreground', '#f3e8ff');
+      root.style.setProperty('--card', '#7c3aed');
+    } else if (theme === 'green') {
+      root.style.setProperty('--background', '#14532d');
+      root.style.setProperty('--foreground', '#dcfce7');
+      root.style.setProperty('--card', '#166534');
     }
     
-    // Force a style recalculation
-    document.body.style.transition = 'background 0.3s ease, color 0.3s ease';
-    
-    // Trigger a custom event to notify other components
-    window.dispatchEvent(new CustomEvent('themeChanged', { 
-      detail: { theme: theme ? theme.id : 'custom' } 
-    }));
+    root.style.setProperty('--primary', primary);
+    root.style.setProperty('--accent', accent);
   };
-
-  const handleThemeSelect = (themeId: string) => {
-    setSelectedTheme(themeId);
-    setIsCustomMode(themeId === 'custom');
-    
-    if (themeId !== 'custom') {
-      const theme = predefinedThemes.find(t => t.id === themeId);
-      if (theme) {
-        applyTheme(theme);
-        // Immediately save the theme with user-specific key
-        if (session?.user?.id) {
-          const userThemeKey = `lieferspatz-theme-${session.user.id}`;
-          localStorage.setItem(userThemeKey, themeId);
-        }
-      }
-    }
-  };
-
-  const handleCustomColorChange = (colorKey: string, value: string) => {
-    const newColors = { ...customColors, [colorKey]: value };
-    setCustomColors(newColors);
-    
-    if (isCustomMode) {
-      applyTheme(null);
-    }
-  };
-
+  
   const saveTheme = () => {
-    if (!session?.user?.id) {
-      console.error('No user session - cannot save theme');
-      return;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lieferspatz_theme', selectedTheme);
+      localStorage.setItem('lieferspatz_primary', primaryColor);
+      localStorage.setItem('lieferspatz_accent', accentColor);
+      
+      applyTheme(selectedTheme, primaryColor, accentColor);
+      setThemeSaved(true);
+      setTimeout(() => setThemeSaved(false), 2000);
     }
-
-    const userThemeKey = `lieferspatz-theme-${session.user.id}`;
-    const userCustomColorsKey = `lieferspatz-custom-colors-${session.user.id}`;
-    
-    localStorage.setItem(userThemeKey, selectedTheme);
-    
-    if (isCustomMode) {
-      localStorage.setItem(userCustomColorsKey, JSON.stringify(customColors));
-    }
-    
-    // Re-apply the theme to ensure it's active
-    if (selectedTheme !== 'custom') {
-      const theme = predefinedThemes.find(t => t.id === selectedTheme);
-      if (theme) {
-        applyTheme(theme);
-      }
-    } else {
-      applyTheme(null);
-    }
-    
-    console.log(`Theme saved for user ${session.user.id}:`, selectedTheme);
-    
-    setShowSaved(true);
-    setTimeout(() => setShowSaved(false), 2000);
   };
-
-  // Apply theme on component mount and when selectedTheme changes
-  useEffect(() => {
-    if (selectedTheme !== 'custom') {
-      const theme = predefinedThemes.find(t => t.id === selectedTheme);
-      if (theme) {
-        applyTheme(theme);
+  
+  const handleLocationSelect = (location: { lat: number; lng: number }) => {
+    setCurrentLocation(location);
+    
+    // Reverse geocoding to get address
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`)
+      .then(response => response.json())
+      .then(data => {
+        const address = data.display_name || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
+        setLocationAddress(address);
+      })
+      .catch(() => {
+        setLocationAddress(`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`);
+      });
+  };
+  
+  const saveLocation = async () => {
+    if (currentLocation && typeof window !== 'undefined') {
+      try {
+        // Parse the address to extract components for German format
+        const cleanAddress = locationAddress.replace('📍 ', '');
+        const addressParts = cleanAddress.split(', ');
+        let street = '';
+        let city = '';
+        let postal = '';
+        
+        console.log('Parsing address:', cleanAddress, 'Parts:', addressParts);
+        
+        // For German addresses from Nominatim, find the relevant parts
+        for (let i = 0; i < addressParts.length; i++) {
+          const part = addressParts[i].trim();
+          
+          // Find postal code (5 digits)
+          if (/^\d{5}$/.test(part) && !postal) {
+            postal = part;
+          }
+          
+          // Find city (look for "Duisburg" or similar main city names)
+          if ((part === 'Duisburg' || part.includes('Duisburg')) && !city) {
+            city = 'Duisburg';
+          }
+        }
+        
+        // Find street name - improved logic for German addresses
+        for (let i = 0; i < addressParts.length; i++) {
+          const part = addressParts[i].trim();
+          
+          // Skip if it's just a number, postal code, or city
+          if (/^\d+$/.test(part) || part === 'Duisburg' || part.includes('Duisburg')) {
+            continue;
+          }
+          
+          // Look for street names that contain letters and might have numbers
+          if (/[a-zA-ZäöüÄÖÜß]/.test(part)) {
+            // Skip neighborhood/district names
+            if (part.includes('Altstadt') || part.includes('Duisburg-Mitte') || part.includes('Kuzey Ren-Vestfalya') || part.includes('Almanya')) {
+              continue;
+            }
+            
+            // Check if this part contains a number (like "Sonnenwall 54")
+            if (/\d+/.test(part)) {
+              street = part; // This is "Sonnenwall 54"
+              break;
+            } else if (!street && part.length > 2) {
+              // This might be just the street name, store it temporarily
+              street = part;
+            }
+          }
+        }
+        
+        // If we found a street name but no number, try to combine with the next numeric part
+        if (street && !/\d+/.test(street)) {
+          for (let i = 0; i < addressParts.length; i++) {
+            const part = addressParts[i].trim();
+            if (/^\d+$/.test(part) && part !== postal) {
+              street = `${street} ${part}`; // Combine "Sonnenwall" + "54"
+              break;
+            }
+          }
+        }
+        
+        // Fallback: if we couldn't parse properly, use a simplified approach
+        if (!street || !city || !postal) {
+          // Try to find patterns in the full address
+          const fullAddress = cleanAddress;
+          
+          // Look for postal code
+          const postalMatch = fullAddress.match(/\b(\d{5})\b/);
+          if (postalMatch && !postal) postal = postalMatch[1];
+          
+          // Look for Duisburg
+          if (fullAddress.includes('Duisburg') && !city) city = 'Duisburg';
+          
+          // Look for street with number at the beginning
+          if (!street && addressParts.length > 0) {
+            for (const part of addressParts.slice(0, 2)) {
+              if (/[a-zA-ZäöüÄÖÜß]+\s+\d+/.test(part)) {
+                street = part;
+                break;
+              }
+            }
+          }
+        }
+        
+        console.log('Parsed components:', { street, city, postal });
+        console.log('Address parts analysis:', addressParts.map((part, i) => ({
+          index: i,
+          part: part.trim(),
+          isNumeric: /^\d+$/.test(part.trim()),
+          isPostalCode: /^\d{5}$/.test(part.trim()),
+          containsLetters: /[a-zA-ZäöüÄÖÜß]/.test(part.trim()),
+          containsNumbers: /\d+/.test(part.trim()),
+          isStreetCandidate: !part.includes('Altstadt') && !part.includes('Duisburg-Mitte') && !part.includes('Kuzey Ren-Vestfalya') && !part.includes('Almanya')
+        })));
+        console.log('Final street detection:', { 
+          foundStreet: street, 
+          foundCity: city, 
+          foundPostal: postal,
+          willSaveToDB: { street, city, postal }
+        });
+        
+        // Save to database via API
+        const response = await fetch('/api/user/update-location', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            latitude: currentLocation.lat,
+            longitude: currentLocation.lng,
+            location: street,
+            city: city,
+            postal_code: postal,
+            full_address: locationAddress.replace('📍 ', '')
+          }),
+        });
+        
+        if (response.ok) {
+          // Also save to localStorage for immediate UI updates
+          localStorage.setItem('lieferspatz_location', JSON.stringify(currentLocation));
+          localStorage.setItem('lieferspatz_address', locationAddress);
+          setShowLocationSaved(true);
+          setTimeout(() => setShowLocationSaved(false), 2000);
+        } else {
+          console.error('Failed to save location to database');
+          alert('Failed to save location. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error saving location:', error);
+        alert('Error saving location. Please try again.');
       }
-    } else if (isCustomMode) {
-      applyTheme(null);
     }
-  }, [selectedTheme, isCustomMode, customColors]);
+  };
+  
+  const getCurrentPosition = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          handleLocationSelect(location);
+        },
+        (error) => {
+          console.error('Error getting current position:', error);
+          alert('Unable to get your current location. Please select manually on the map.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
+  };
 
   if (!session) {
     return (
@@ -277,158 +276,13 @@ export default function Settings() {
     <div className="min-h-screen" style={{ background: 'var(--background, #0f172a)' }}>
       <Header />
       
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 pt-28 pb-8 max-w-4xl">
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
           <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
           <p className="text-slate-300 mb-8">Customize your Lieferspatz experience</p>
 
-          {/* Theme Customization Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-4 flex items-center">
-              <span className="mr-3">🎨</span>
-              Color Theme
-            </h2>
-            <p className="text-slate-300 mb-6">Choose a color theme that matches your style</p>
-
-            {/* Predefined Themes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {predefinedThemes.map((theme) => (
-                <div
-                  key={theme.id}
-                  className={`relative cursor-pointer rounded-lg border-2 transition-all duration-200 ${
-                    selectedTheme === theme.id && !isCustomMode
-                      ? 'border-teal-400 ring-2 ring-teal-400/30'
-                      : 'border-slate-600 hover:border-slate-500'
-                  }`}
-                  onClick={() => handleThemeSelect(theme.id)}
-                >
-                  <div
-                    className="p-4 rounded-lg"
-                    style={{ background: theme.preview.bg }}
-                  >
-                    <h3 className="font-semibold mb-2" style={{ color: theme.preview.text }}>
-                      {theme.name}
-                    </h3>
-                    <div className="flex space-x-2 mb-3">
-                      <div
-                        className="w-6 h-6 rounded"
-                        style={{ backgroundColor: theme.background }}
-                      />
-                      <div
-                        className="w-6 h-6 rounded"
-                        style={{ backgroundColor: theme.primary }}
-                      />
-                      <div
-                        className="w-6 h-6 rounded"
-                        style={{ backgroundColor: theme.accent }}
-                      />
-                    </div>
-                    <button
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors"
-                      style={{
-                        backgroundColor: theme.preview.button,
-                        color: theme.preview.text
-                      }}
-                    >
-                      Preview Button
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {/* Custom Theme Option */}
-              <div
-                className={`relative cursor-pointer rounded-lg border-2 transition-all duration-200 ${
-                  isCustomMode
-                    ? 'border-teal-400 ring-2 ring-teal-400/30'
-                    : 'border-slate-600 hover:border-slate-500'
-                }`}
-                onClick={() => handleThemeSelect('custom')}
-              >
-                <div
-                  className="p-4 rounded-lg"
-                  style={{
-                    background: `linear-gradient(135deg, ${customColors.background} 0%, ${customColors.card} 100%)`
-                  }}
-                >
-                  <h3 className="font-semibold mb-2" style={{ color: customColors.foreground }}>
-                    Custom Theme
-                  </h3>
-                  <div className="flex space-x-2 mb-3">
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: customColors.background }}
-                    />
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: customColors.primary }}
-                    />
-                    <div
-                      className="w-6 h-6 rounded"
-                      style={{ backgroundColor: customColors.accent }}
-                    />
-                  </div>
-                  <button
-                    className="px-3 py-1 rounded text-sm font-medium"
-                    style={{
-                      backgroundColor: customColors.primary,
-                      color: customColors.foreground
-                    }}
-                  >
-                    Custom Button
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Custom Color Picker */}
-            {isCustomMode && (
-              <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600/50">
-                <h3 className="text-xl font-semibold text-white mb-4">Custom Colors</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(customColors).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-3">
-                      <label className="text-slate-300 min-w-0 flex-1 capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}:
-                      </label>
-                      <input
-                        type="color"
-                        value={value}
-                        onChange={(e) => handleCustomColorChange(key, e.target.value)}
-                        className="w-12 h-8 rounded border border-slate-500 cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={value}
-                        onChange={(e) => handleCustomColorChange(key, e.target.value)}
-                        className="bg-slate-600 text-white px-2 py-1 rounded text-sm font-mono w-20"
-                        placeholder="#000000"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Save Button */}
-            <div className="flex items-center space-x-4 mt-6">
-              <button
-                onClick={saveTheme}
-                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-              >
-                Save Theme
-              </button>
-              
-              {showSaved && (
-                <div className="text-green-400 flex items-center">
-                  <span className="mr-2">✓</span>
-                  Theme saved successfully!
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* User Info Section */}
+          <div className="space-y-8">
+            {/* Account Information */}
           <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600/50">
             <h2 className="text-2xl font-semibold text-white mb-4 flex items-center">
               <span className="mr-3">👤</span>
@@ -443,11 +297,137 @@ export default function Settings() {
                 <span className="text-slate-300">User Type:</span>
                 <span className="text-white capitalize">{session.user?.userType}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-300">Theme:</span>
-                <span className="text-white">
-                  {isCustomMode ? 'Custom' : predefinedThemes.find(t => t.id === selectedTheme)?.name}
-                </span>
+              </div>
+            </div>
+
+            {/* Theme Customization */}
+            <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600/50">
+              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center">
+                <span className="mr-3">🎨</span>
+                Theme Customization
+              </h2>
+              
+              {/* Theme Presets */}
+              <div className="mb-6">
+                <label className="block text-slate-300 mb-3">Choose Theme Preset:</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { value: 'dark', name: 'Dark Ocean', bg: 'from-slate-900 to-slate-800' },
+                    { value: 'blue', name: 'Blue Night', bg: 'from-blue-900 to-blue-800' },
+                    { value: 'purple', name: 'Purple Galaxy', bg: 'from-purple-900 to-purple-800' },
+                    { value: 'green', name: 'Forest Green', bg: 'from-green-900 to-green-800' }
+                  ].map((theme) => (
+                    <button
+                      key={theme.value}
+                      onClick={() => setSelectedTheme(theme.value)}
+                      className={`p-3 rounded-lg border-2 transition-all text-left ${
+                        selectedTheme === theme.value
+                          ? 'border-blue-400 bg-blue-900/30'
+                          : 'border-slate-600 hover:border-slate-500'
+                      }`}
+                    >
+                      <div className={`h-8 w-full rounded bg-gradient-to-r ${theme.bg} mb-2`}></div>
+                      <p className="text-white text-sm font-medium">{theme.name}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Colors */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-slate-300 mb-2">Primary Color:</label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-12 h-12 rounded-lg border-2 border-slate-600 bg-transparent cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="flex-1 bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white"
+                      placeholder="#3b82f6"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-slate-300 mb-2">Accent Color:</label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-12 h-12 rounded-lg border-2 border-slate-600 bg-transparent cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="flex-1 bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white"
+                      placeholder="#10b981"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Theme Button */}
+              <button
+                onClick={saveTheme}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                {themeSaved ? '✅ Theme Saved!' : 'Save Theme'}
+              </button>
+            </div>
+
+            {/* Location Settings */}
+            <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600/50">
+              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center">
+                <span className="mr-3">📍</span>
+                Location Settings
+              </h2>
+              
+              {/* Current Location Display */}
+              {currentLocation && (
+                <div className="mb-4 p-4 bg-slate-600/30 rounded-lg border border-slate-500/50">
+                  <p className="text-slate-300 text-sm mb-2">Current Location:</p>
+                  <p className="text-white font-medium">{locationAddress || `${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)}`}</p>
+                </div>
+              )}
+
+              {/* Location Controls */}
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <button
+                    onClick={getCurrentPosition}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+                  >
+                    <span className="mr-2">📱</span>
+                    Use Current Location
+                  </button>
+                  {currentLocation && (
+                    <button
+                      onClick={saveLocation}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      {showLocationSaved ? '✅ Location Saved!' : 'Save Location'}
+                    </button>
+                  )}
+                </div>
+                
+                <p className="text-slate-400 text-sm mb-4">
+                  Click on the map below to set your location manually, or use the "Use Current Location" button.
+                </p>
+              </div>
+
+              {/* Interactive Map */}
+              <div className="mb-4">
+                <LocationPickerMap
+                  onLocationSelect={handleLocationSelect}
+                  initialLocation={currentLocation}
+                />
               </div>
             </div>
           </div>

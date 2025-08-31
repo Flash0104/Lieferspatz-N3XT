@@ -87,7 +87,50 @@ export default function Home() {
 
   const loadDistances = async (restaurantList: Restaurant[]) => {
     try {
-      const response = await fetch('/api/restaurants-with-distance');
+      // Multi-layer approach to get user location for distance calculation
+      let apiUrl = '/api/restaurants-with-distance';
+      let locationFound = false;
+      
+      // Layer 1: Try to get from session user object (frontend)
+      if (session?.user && session.user.location && session.user.postalCode) {
+        const params = new URLSearchParams({
+          userLocation: session.user.location,
+          userPostalCode: session.user.postalCode
+        });
+        apiUrl = `/api/restaurants-with-distance?${params.toString()}`;
+        console.log('✅ Using session location:', session.user.location, session.user.postalCode);
+        locationFound = true;
+      }
+      
+      // Layer 2: Try to fetch user data from API (fallback)
+      if (!locationFound && session?.user) {
+        try {
+          const userResponse = await fetch('/api/user/balance');
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            const user = userData?.user;
+            
+            if (user && user.location && user.postalCode) {
+              const params = new URLSearchParams({
+                userLocation: user.location,
+                userPostalCode: user.postalCode
+              });
+              apiUrl = `/api/restaurants-with-distance?${params.toString()}`;
+              console.log('✅ Using API user location:', user.location, user.postalCode);
+              locationFound = true;
+            }
+          }
+        } catch (error) {
+          console.log('API user location fetch failed:', error);
+        }
+      }
+      
+      // Layer 3: Intelligent fallback (handled by API)
+      if (!locationFound) {
+        console.log('🔄 Using intelligent fallback for distance calculation');
+      }
+      
+      const response = await fetch(apiUrl);
       if (response.ok) {
         const distanceData = await response.json();
         
@@ -106,6 +149,7 @@ export default function Home() {
           updatedRestaurants.sort((a, b) => {
             const aDistance = a.distance || 999;
             const bDistance = b.distance || 999;
+            // Standard sorting: asc = smaller first, desc = larger first  
             return currentOrder === 'asc' ? aDistance - bDistance : bDistance - aDistance;
           });
         }
@@ -131,15 +175,17 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto px-4 pt-24 pb-8">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: 'var(--foreground, #f1f5f9)' }}>
-          Welcome to <span style={{ color: 'var(--accent, #f97316)' }}>Lieferspatz</span>
-        </h1>
-        <p className="text-lg mb-6" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>
-          Discover amazing restaurants and get your favorite food delivered
-        </p>
-      </div>
+    <div className="container mx-auto px-4 pt-28 pb-8">
+              <div className="text-center mb-10">
+          <h1 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: 'var(--foreground, #f1f5f9)' }}>
+            Welcome to <span style={{ color: 'var(--accent, #f97316)' }}>Lieferspatz</span>
+          </h1>
+          <p className="text-lg mb-6" style={{ color: 'var(--foreground, #f1f5f9)', opacity: 0.8 }}>
+            Discover amazing restaurants and get your favorite food delivered
+          </p>
+          
+
+        </div>
 
       {/* Features Section */}
       <div className="grid md:grid-cols-3 gap-6 mb-12">

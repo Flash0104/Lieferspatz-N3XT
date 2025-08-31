@@ -16,7 +16,19 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: parseInt(session.user.id) },
-      select: { balance: true }
+      select: { 
+        balance: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        location: true,
+        postalCode: true,
+        city: true,
+        streetName: true,
+        blockNumber: true,
+        latitude: true,
+        longitude: true
+      }
     });
 
     if (!user) {
@@ -26,7 +38,10 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json({ balance: user.balance });
+    return NextResponse.json({ 
+      balance: user.balance,
+      user: user
+    });
   } catch (error) {
     console.error('Error fetching balance:', error);
     return NextResponse.json(

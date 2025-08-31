@@ -47,6 +47,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    console.log('API returning restaurant data:', {
+      id: restaurant.id,
+      name: restaurant.name,
+      imageUrl: restaurant.imageUrl,
+      hasImageUrl: !!restaurant.imageUrl
+    })
+
     return NextResponse.json({
       success: true,
       restaurant

@@ -47,15 +47,23 @@ export default function CartSidebar() {
       {/* Sidebar - slides in from RIGHT */}
       <div className={`cart-sidebar ${state.isOpen ? 'open' : ''}`}>
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b" style={{
+        <div className="flex justify-between items-center p-8 border-b" style={{
           borderColor: 'rgba(148, 163, 184, 0.2)',
           backgroundColor: 'var(--card)'
         }}>
           <h2 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Your Cart</h2>
           <button
             onClick={closeCart}
-            className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
             style={{ color: 'var(--foreground)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+              e.currentTarget.style.color = '#ef4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--foreground)';
+            }}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

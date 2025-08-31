@@ -25,7 +25,7 @@ interface Order {
     lastName: string
     location: string
   }
-  items: {
+  orderItems: {
     quantity: number
     menuItem: {
       name: string
@@ -44,6 +44,12 @@ interface Restaurant {
   averagePrepTime: number
   rating: number
   imageUrl?: string
+  user?: {
+    firstName: string
+    lastName: string
+    email: string
+    balance: number
+  }
 }
 
 export default function RestaurantProfile() {
@@ -54,6 +60,7 @@ export default function RestaurantProfile() {
   const [orders, setOrders] = useState<Order[]>([])
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
   const [loading, setLoading] = useState(true)
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(undefined)
   const [newMenuItem, setNewMenuItem] = useState({
     name: '',
     description: '',
@@ -84,13 +91,33 @@ export default function RestaurantProfile() {
     fetchRestaurantData()
   }, [session, status, router])
 
+  // Debug: Log restaurant data changes
+  useEffect(() => {
+    if (restaurant) {
+      console.log('Restaurant data updated:', {
+        id: restaurant.id,
+        name: restaurant.name,
+        imageUrl: restaurant.imageUrl
+      })
+    }
+  }, [restaurant])
+
+  // Debug: Log currentImageUrl changes
+  useEffect(() => {
+    console.log('Current image URL changed:', currentImageUrl)
+  }, [currentImageUrl])
+
   const fetchRestaurantData = async () => {
     try {
       // Fetch restaurant data
       const restaurantResponse = await fetch('/api/user/restaurant')
       if (restaurantResponse.ok) {
         const restaurantData = await restaurantResponse.json()
+        console.log('Fetched restaurant data:', restaurantData.restaurant)
+        console.log('Image URL from API:', restaurantData.restaurant.imageUrl)
+        console.log('Setting currentImageUrl to:', restaurantData.restaurant.imageUrl)
         setRestaurant(restaurantData.restaurant)
+        setCurrentImageUrl(restaurantData.restaurant.imageUrl)
         setRestaurantData({
           name: restaurantData.restaurant.name,
           address: restaurantData.restaurant.address,
@@ -212,9 +239,24 @@ export default function RestaurantProfile() {
     }
   }
 
-  const handleRestaurantImageUpload = (url: string) => {
+  const handleRestaurantImageUpload = async (url: string) => {
     if (restaurant) {
+      // Update local state immediately for instant feedback
       setRestaurant({ ...restaurant, imageUrl: url })
+      setCurrentImageUrl(url) // Update the local image URL immediately
+      
+      // Also refresh the restaurant data from the server to ensure consistency
+      try {
+        const response = await fetch('/api/user/restaurant')
+        if (response.ok) {
+          const data = await response.json()
+          setRestaurant(data.restaurant)
+          setCurrentImageUrl(data.restaurant.imageUrl)
+          console.log('Restaurant data refreshed after image upload:', data.restaurant)
+        }
+      } catch (error) {
+        console.error('Error refreshing restaurant data:', error)
+      }
     }
   }
 
@@ -236,9 +278,9 @@ export default function RestaurantProfile() {
       case 'ACCEPTED': return 'text-blue-600 bg-blue-100'
       case 'PREPARING': return 'text-purple-600 bg-purple-100'
       case 'READY': return 'text-green-600 bg-green-100'
-      case 'DELIVERED': return 'text-gray-600 bg-gray-100'
+      case 'DELIVERED': return ' bg-gray-100'
       case 'CANCELLED': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
+      default: return ' bg-gray-100'
     }
   }
 
@@ -259,14 +301,14 @@ export default function RestaurantProfile() {
   if (!restaurant) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <Header restaurantImageUrl={currentImageUrl} />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🏪</div>
             <h2 className="text-2xl font-bold text-gray-700 mb-4">
               No Restaurant Profile Found
             </h2>
-            <p className="text-gray-500 mb-6">
+            <p className=" mb-6">
               It looks like you haven't set up your restaurant yet. Please contact support to complete your restaurant setup.
             </p>
           </div>
@@ -276,19 +318,40 @@ export default function RestaurantProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="min-h-screen" style={{ 
+      background: 'linear-gradient(135deg, var(--background) 0%, var(--card) 100%)'
+    }}>
+      <Header restaurantImageUrl={currentImageUrl} />
       
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 pt-28 pb-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="rounded-lg shadow-md p-6 mb-8" style={{
+          backgroundColor: 'var(--card)',
+          borderColor: 'rgba(148, 163, 184, 0.2)',
+          color: 'var(--foreground)'
+        }}>
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">{restaurant.name}</h1>
-              <p className="text-gray-600">{restaurant.address}, {restaurant.city}</p>
-              <div className="flex items-center mt-2">
-                <span className="text-yellow-500">★</span>
-                <span className="ml-1 text-gray-700">{restaurant.rating.toFixed(1)} rating</span>
+            <div className="flex items-center gap-6">
+              {/* Restaurant Profile Picture */}
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-orange-200 bg-gray-100">
+                <img
+                  key={currentImageUrl || 'default'}
+                  src={currentImageUrl || '/images/default-restaurant.svg'}
+                  alt={`${restaurant.name} profile`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/images/default-restaurant.svg';
+                  }}
+                />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>{restaurant.name}</h1>
+                <p style={{ color: 'var(--foreground)', opacity: 0.8 }}>{restaurant.address}, {restaurant.city}</p>
+                <div className="flex items-center mt-2">
+                  <span className="text-yellow-500">★</span>
+                  <span className="ml-1" style={{ color: 'var(--foreground)', opacity: 0.8 }}>{restaurant.rating.toFixed(1)} rating</span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -298,12 +361,25 @@ export default function RestaurantProfile() {
               <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg">
                 Balance: €{session?.user.balance?.toFixed(2) || '0.00'}
               </div>
+              <button
+                onClick={fetchRestaurantData}
+                className="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg hover:bg-orange-200"
+              >
+                🔄 Refresh
+              </button>
+              <div className="text-xs text-gray-500">
+                Debug: {currentImageUrl || 'No image URL'}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg shadow-md mb-8">
+        <div className="rounded-lg shadow-md mb-8" style={{
+          backgroundColor: 'var(--card)',
+          borderColor: 'rgba(148, 163, 184, 0.2)',
+          color: 'var(--foreground)'
+        }}>
           <div className="border-b">
             <nav className="flex space-x-8 px-6">
               {[
@@ -318,7 +394,7 @@ export default function RestaurantProfile() {
                   className={`py-4 px-2 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-orange-500 text-orange-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent  hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   {tab.label}
@@ -332,22 +408,27 @@ export default function RestaurantProfile() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Restaurant Profile Picture Section */}
-                <div className="bg-white border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4">Restaurant Profile Picture</h3>
+                <div className="border rounded-lg p-6" style={{
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'rgba(148, 163, 184, 0.2)',
+                  color: 'var(--foreground)'
+                }}>
+                  <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Restaurant Profile Picture</h3>
                   <div className="flex items-center gap-6">
                     <ImageUpload
-                      currentImage={restaurant.imageUrl}
+                      key={currentImageUrl || 'default'}
+                      currentImage={currentImageUrl}
                       uploadType="restaurant"
                       entityId={restaurant.id.toString()}
                       onUploadSuccess={handleRestaurantImageUpload}
                       size="large"
                     />
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Upload your restaurant's profile picture</h4>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <h4 className="font-medium mb-2" style={{ color: 'var(--foreground)' }}>Upload your restaurant's profile picture</h4>
+                      <p className="text-sm mb-2" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                         Choose a high-quality image that represents your restaurant. This will be shown to customers when they browse restaurants.
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
                         Recommended: Square image, minimum 400x400 pixels, maximum 5MB
                       </p>
                     </div>
@@ -373,21 +454,21 @@ export default function RestaurantProfile() {
                   <h3 className="text-lg font-semibold mb-4">Restaurant Stats</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <span className="text-gray-600">Menu Items:</span>
+                      <span className="">Menu Items:</span>
                       <span className="ml-2 font-semibold">{menuItems.length}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Average Prep Time:</span>
+                      <span className="">Average Prep Time:</span>
                       <span className="ml-2 font-semibold">{restaurant.averagePrepTime} min</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Status:</span>
+                      <span className="">Status:</span>
                       <span className={`ml-2 font-semibold ${restaurant.isOpen ? 'text-green-600' : 'text-red-600'}`}>
                         {restaurant.isOpen ? 'Open' : 'Closed'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Rating:</span>
+                      <span className="">Rating:</span>
                       <span className="ml-2 font-semibold">{restaurant.rating.toFixed(1)} ⭐</span>
                     </div>
                   </div>
@@ -400,18 +481,22 @@ export default function RestaurantProfile() {
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold">Active Orders</h3>
                 {pendingOrders.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No active orders</p>
+                  <p className=" text-center py-8">No active orders</p>
                 ) : (
                   <div className="space-y-4">
                     {pendingOrders.map((order) => (
-                      <div key={order.id} className="border rounded-lg p-4 bg-white">
+                      <div key={order.id} className="border rounded-lg p-4" style={{
+                        backgroundColor: 'var(--background)',
+                        borderColor: 'rgba(148, 163, 184, 0.2)',
+                        color: 'var(--foreground)'
+                      }}>
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <h4 className="font-semibold">Order #{order.id}</h4>
-                            <p className="text-gray-600">
+                            <p className="">
                               {order.customer.firstName} {order.customer.lastName} - {order.customer.location}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm ">
                               {new Date(order.createdAt).toLocaleString()}
                             </p>
                           </div>
@@ -425,7 +510,7 @@ export default function RestaurantProfile() {
                         
                         <div className="border-t pt-3 mb-4">
                           <h5 className="font-medium mb-2">Items:</h5>
-                          {order.items.map((item, index) => (
+                          {order.orderItems.map((item, index) => (
                             <div key={index} className="flex justify-between text-sm">
                               <span>{item.quantity}x {item.menuItem.name}</span>
                               <span>€{(item.quantity * item.menuItem.price).toFixed(2)}</span>
@@ -466,6 +551,14 @@ export default function RestaurantProfile() {
                               Cancel
                             </button>
                           )}
+                          
+                          {/* View Order Details Button */}
+                          <button
+                            onClick={() => router.push(`/order/${order.id}`)}
+                            className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 ml-auto"
+                          >
+                            View Details
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -553,14 +646,18 @@ export default function RestaurantProfile() {
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">
                       No menu items yet
                     </h3>
-                    <p className="text-gray-500 mb-6">
+                    <p className=" mb-6">
                       Start building your menu by adding your first item!
                     </p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
                     {menuItems.map((item) => (
-                      <div key={item.id} className="border rounded-lg p-4 bg-white">
+                      <div key={item.id} className="border rounded-lg p-4" style={{
+                        backgroundColor: 'var(--background)',
+                        borderColor: 'rgba(148, 163, 184, 0.2)',
+                        color: 'var(--foreground)'
+                      }}>
                         {editingItem?.id === item.id ? (
                           /* Edit Mode */
                           <div className="space-y-4">
@@ -637,7 +734,7 @@ export default function RestaurantProfile() {
                             />
                             <div className="flex-1">
                               <h4 className="font-semibold text-lg">{item.name}</h4>
-                              <p className="text-gray-600 text-sm mb-2">{item.description}</p>
+                              <p className=" text-sm mb-2">{item.description}</p>
                               <div className="flex items-center gap-4">
                                 <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                                   {item.category}
