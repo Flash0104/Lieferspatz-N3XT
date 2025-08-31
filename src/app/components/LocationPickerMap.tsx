@@ -23,6 +23,7 @@ interface Marker {
   addTo: (map: MapInstance) => Marker;
   setLatLng: (latlng: LatLng) => Marker;
   remove: () => void;
+  on: (event: string, handler: (e: any) => void) => void;
 }
 
 interface LeafletStatic {
@@ -265,7 +266,7 @@ const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     });
 
     // Handle marker drag - no zoom changes
-    marker.on('dragend', async (e: any) => {
+    markerRef.current.on('dragend', async (e: any) => {
       const { lat, lng } = e.target.getLatLng();
       const newLocation = { lat, lng };
       
