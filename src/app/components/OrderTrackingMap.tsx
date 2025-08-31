@@ -242,7 +242,7 @@ export default function OrderTrackingMap({
     L.control.scale().addTo(map);
 
     // Add custom control with order info
-    const orderInfoControl = L.Control({ position: 'topright' });
+    const orderInfoControl = new L.Control({ position: 'topright' });
     orderInfoControl.onAdd = function() {
       const div = L.DomUtil.create('div', 'order-info-control');
       div.innerHTML = `
