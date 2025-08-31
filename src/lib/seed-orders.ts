@@ -74,7 +74,7 @@ export async function seedSampleOrders() {
           restaurantId: orderData.restaurantId,
           status: orderData.status as any,
           totalPrice: orderData.totalPrice,
-          items: {
+          orderItems: {
             create: orderData.items
           }
         }
