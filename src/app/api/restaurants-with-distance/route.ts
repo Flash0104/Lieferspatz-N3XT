@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     const customerCacheKey = `${customerAddress.city}-${customerAddress.streetName}-${customerAddress.blockNumber}-${customerAddress.postalCode || 'no-postal'}`;
     
     // Get customer coordinates (with caching)
-    let customerCoords = customerCoordinatesCache.get(customerCacheKey);
-    if (customerCoords === undefined) {
+    let customerCoords: { latitude: number; longitude: number } | null = customerCoordinatesCache.get(customerCacheKey) || null;
+    if (customerCoords === null) {
       console.log('Geocoding customer address:', customerAddress);
       customerCoords = await geocodeAddress(customerAddress);
       customerCoordinatesCache.set(customerCacheKey, customerCoords);
@@ -185,8 +185,8 @@ export async function GET(request: NextRequest) {
       customerCacheKey = `${customerAddress.city}-${customerAddress.streetName}-${customerAddress.blockNumber}-${customerAddress.postalCode}`;
       
       // Get customer coordinates (with caching)
-      customerCoords = customerCoordinatesCache.get(customerCacheKey);
-      if (customerCoords === undefined) {
+      customerCoords = customerCoordinatesCache.get(customerCacheKey) || null;
+      if (customerCoords === null) {
         console.log('Geocoding user address:', customerAddress);
         customerCoords = await geocodeAddress(customerAddress);
         
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
           // If still fails, use known coordinates for common cities
           if (!customerCoords) {
             console.log(`City geocoding failed, using known coordinates for: ${customerAddress.city}`);
-            const knownCityCoords = {
+            const knownCityCoords: Record<string, { latitude: number; longitude: number }> = {
               'Geilenkirchen': { latitude: 50.9642, longitude: 6.1194 },
               'Duisburg': { latitude: 51.4344, longitude: 6.7623 },
               'Düsseldorf': { latitude: 51.2277, longitude: 6.7735 },
@@ -267,8 +267,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Get customer coordinates (with caching)
-        customerCoords = customerCoordinatesCache.get(customerCacheKey);
-        if (customerCoords === undefined) {
+        customerCoords = customerCoordinatesCache.get(customerCacheKey) || null;
+        if (customerCoords === null) {
           console.log('Geocoding fallback address:', defaultCustomerAddress);
           customerCoords = await geocodeAddress(defaultCustomerAddress);
           
