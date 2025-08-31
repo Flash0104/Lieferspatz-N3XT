@@ -426,7 +426,7 @@ export default function Settings() {
               <div className="mb-4">
                 <LocationPickerMap
                   onLocationSelect={handleLocationSelect}
-                  initialLocation={currentLocation}
+                  initialLocation={currentLocation || undefined}
                 />
               </div>
             </div>
