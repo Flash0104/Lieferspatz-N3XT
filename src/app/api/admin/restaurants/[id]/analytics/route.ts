@@ -135,7 +135,7 @@ export async function GET(
     const itemSales = new Map<string, { name: string, quantity: number, revenue: number }>()
     
     orders.forEach(order => {
-      order.items.forEach(item => {
+      order.orderItems.forEach(item => {
         const key = item.menuItem.name
         const existing = itemSales.get(key) || { name: key, quantity: 0, revenue: 0 }
         existing.quantity += item.quantity
