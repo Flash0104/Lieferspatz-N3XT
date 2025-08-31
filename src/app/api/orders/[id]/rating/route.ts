@@ -3,46 +3,47 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || !session.user) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orderId = parseInt(params.id);
+    const { id } = await params;
+    const orderId = parseInt(id);
 
     if (isNaN(orderId)) {
       return NextResponse.json({ error: 'Invalid order ID' }, { status: 400 });
     }
 
-    // Check if rating exists for this order
-    const rating = await prisma.rating.findFirst({
+    // Check if this order has already been rated
+    const existingRating = await prisma.rating.findFirst({
       where: {
         orderId: orderId,
         userId: parseInt(session.user.id)
-      },
-      select: {
-        id: true,
-        rating: true,
-        comment: true,
-        createdAt: true
       }
     });
 
     return NextResponse.json({
-      hasRating: !!rating,
-      rating: rating
+      hasRated: !!existingRating,
+      rating: existingRating ? {
+        id: existingRating.id,
+        rating: existingRating.rating,
+        comment: existingRating.comment,
+        createdAt: existingRating.createdAt
+      } : null
     });
 
   } catch (error) {
     console.error('Error checking rating:', error);
-    return NextResponse.json({ 
-      error: 'Failed to check rating' 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
